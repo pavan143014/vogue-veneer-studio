@@ -14,7 +14,119 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      order_items: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string | null
+          order_id: string
+          price: number
+          product_id: string
+          product_title: string
+          quantity: number
+          selected_options: Json | null
+          variant_id: string
+          variant_title: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          order_id: string
+          price: number
+          product_id: string
+          product_title: string
+          quantity: number
+          selected_options?: Json | null
+          variant_id: string
+          variant_title?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          order_id?: string
+          price?: number
+          product_id?: string
+          product_title?: string
+          quantity?: number
+          selected_options?: Json | null
+          variant_id?: string
+          variant_title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          address: string
+          city: string
+          created_at: string
+          currency: string
+          email: string
+          estimated_delivery: string | null
+          full_name: string
+          id: string
+          order_number: string
+          phone: string | null
+          pincode: string
+          shipping_cost: number
+          shopify_checkout_url: string | null
+          state: string
+          status: string
+          subtotal: number
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          city: string
+          created_at?: string
+          currency?: string
+          email: string
+          estimated_delivery?: string | null
+          full_name: string
+          id?: string
+          order_number: string
+          phone?: string | null
+          pincode: string
+          shipping_cost?: number
+          shopify_checkout_url?: string | null
+          state: string
+          status?: string
+          subtotal: number
+          total: number
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          city?: string
+          created_at?: string
+          currency?: string
+          email?: string
+          estimated_delivery?: string | null
+          full_name?: string
+          id?: string
+          order_number?: string
+          phone?: string | null
+          pincode?: string
+          shipping_cost?: number
+          shopify_checkout_url?: string | null
+          state?: string
+          status?: string
+          subtotal?: number
+          total?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
