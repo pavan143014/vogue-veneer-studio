@@ -3,6 +3,7 @@ import { Search, ShoppingBag, Heart, Menu, X, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { Link } from "react-router-dom";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -60,13 +61,14 @@ const Header = () => {
           </nav>
 
           {/* Icons */}
-          <div className="flex items-center gap-2 md:gap-4">
+          <div className="flex items-center gap-1 md:gap-2">
             <Button variant="ghost" size="icon" className="hidden md:flex">
               <Search size={20} />
             </Button>
             <Button variant="ghost" size="icon" className="hidden md:flex">
               <User size={20} />
             </Button>
+            <ThemeToggle />
             <Button variant="ghost" size="icon">
               <Heart size={20} />
             </Button>
