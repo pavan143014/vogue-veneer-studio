@@ -12,7 +12,7 @@ const Footer = () => {
       { name: "Sale", href: "#sale" },
     ],
     help: [
-      { name: "Contact Us", href: "#contact" },
+      { name: "Contact Us", href: "/contact" },
       { name: "Shipping Info", href: "#shipping" },
       { name: "Returns & Exchanges", href: "#returns" },
       { name: "Size Guide", href: "#size-guide" },
