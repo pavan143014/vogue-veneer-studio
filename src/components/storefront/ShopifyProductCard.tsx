@@ -3,6 +3,7 @@ import { Heart, ShoppingBag, Star } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useCartStore, ShopifyProduct } from "@/stores/cartStore";
+import { useWishlistStore } from "@/stores/wishlistStore";
 import { toast } from "sonner";
 
 interface ShopifyProductCardProps {
@@ -10,8 +11,9 @@ interface ShopifyProductCardProps {
 }
 
 const ShopifyProductCard = ({ product }: ShopifyProductCardProps) => {
-  const [isLiked, setIsLiked] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const { toggleItem, isInWishlist } = useWishlistStore();
+  const isLiked = isInWishlist(product.node.id);
   const { addItem, isLoading } = useCartStore();
 
   const { node } = product;
@@ -77,7 +79,10 @@ const ShopifyProductCard = ({ product }: ShopifyProductCardProps) => {
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              setIsLiked(!isLiked);
+              const added = toggleItem(product);
+              toast.success(added ? "Added to wishlist" : "Removed from wishlist", {
+                description: node.title,
+              });
             }}
             className={`absolute top-3 right-3 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
               isLiked 
