@@ -56,18 +56,55 @@ const ShopifyProductCard = ({ product }: ShopifyProductCardProps) => {
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);
   const [isBuyingNow, setIsBuyingNow] = useState(false);
+  const [hoveredColor, setHoveredColor] = useState<string | null>(null);
   const { toggleItem, isInWishlist } = useWishlistStore();
   const isLiked = isInWishlist(product.node.id);
   const { addItem, isLoading } = useCartStore();
 
   const { node } = product;
-  const imageUrl = node.images?.edges?.[0]?.node?.url;
+  const defaultImageUrl = node.images?.edges?.[0]?.node?.url;
   const currencyCode = node.priceRange.minVariantPrice.currencyCode;
 
   // Get product options (size, color, etc.)
   const productOptions = useMemo(() => {
     return node.options?.filter(opt => opt.name.toLowerCase() !== "title") || [];
   }, [node.options]);
+
+  // Find color option name
+  const colorOptionName = useMemo(() => {
+    return productOptions.find(opt => 
+      opt.name.toLowerCase().includes("color") || opt.name.toLowerCase().includes("colour")
+    )?.name;
+  }, [productOptions]);
+
+  // Map colors to variant images
+  const colorImageMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    if (!colorOptionName || !node.variants?.edges) return map;
+    
+    node.variants.edges.forEach(({ node: variant }, index) => {
+      const colorOption = variant.selectedOptions?.find(
+        opt => opt.name.toLowerCase().includes("color") || opt.name.toLowerCase().includes("colour")
+      );
+      if (colorOption && !map[colorOption.value]) {
+        // Use variant index to get corresponding image (if available)
+        const imageIndex = Math.min(index, (node.images?.edges?.length || 1) - 1);
+        map[colorOption.value] = node.images?.edges?.[imageIndex]?.node?.url || defaultImageUrl || '';
+      }
+    });
+    return map;
+  }, [node.variants, node.images, colorOptionName, defaultImageUrl]);
+
+  // Get current display image based on hover or selection
+  const displayImageUrl = useMemo(() => {
+    if (hoveredColor && colorImageMap[hoveredColor]) {
+      return colorImageMap[hoveredColor];
+    }
+    if (colorOptionName && selectedOptions[colorOptionName] && colorImageMap[selectedOptions[colorOptionName]]) {
+      return colorImageMap[selectedOptions[colorOptionName]];
+    }
+    return defaultImageUrl;
+  }, [hoveredColor, selectedOptions, colorOptionName, colorImageMap, defaultImageUrl]);
 
   // Initialize selected options with first values
   useMemo(() => {
@@ -183,11 +220,11 @@ const ShopifyProductCard = ({ product }: ShopifyProductCardProps) => {
       >
         {/* Image Container */}
         <div className="relative aspect-[3/4] bg-gradient-to-br from-muted to-ivory-dark overflow-hidden">
-          {imageUrl ? (
+          {displayImageUrl ? (
             <img 
-              src={imageUrl} 
+              src={displayImageUrl} 
               alt={node.title}
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+              className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-gradient-to-br from-coral/10 to-gold/10">
@@ -262,11 +299,13 @@ const ShopifyProductCard = ({ product }: ShopifyProductCardProps) => {
                 <div key={option.name} onClick={(e) => e.stopPropagation()}>
                   <div className="flex flex-wrap gap-1.5">
                     {isColorOption(option.name) ? (
-                      // Color swatches
+                      // Color swatches with hover image preview
                       option.values.map((value) => (
                         <button
                           key={value}
                           onClick={(e) => handleOptionSelect(option.name, value, e)}
+                          onMouseEnter={() => setHoveredColor(value)}
+                          onMouseLeave={() => setHoveredColor(null)}
                           className={cn(
                             "w-6 h-6 rounded-full transition-all duration-200 flex items-center justify-center",
                             getColorClass(value),
