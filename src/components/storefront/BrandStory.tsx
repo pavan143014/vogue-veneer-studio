@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
+import brandStoryImg from "@/assets/brand-story.jpg";
 
 const BrandStory = () => {
   return (
@@ -8,16 +9,12 @@ const BrandStory = () => {
         <div className="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
           {/* Image Side */}
           <div className="relative order-2 md:order-1">
-            <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-gradient-to-br from-gold-light to-cream-dark">
-              {/* Placeholder for brand story image */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center p-8">
-                  <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-primary/20 flex items-center justify-center">
-                    <span className="font-display text-4xl text-primary">🪷</span>
-                  </div>
-                  <p className="font-display text-xl text-foreground italic">Our Story</p>
-                </div>
-              </div>
+            <div className="relative aspect-[4/5] rounded-2xl overflow-hidden">
+              <img 
+                src={brandStoryImg} 
+                alt="Indian artisans hand embroidering traditional fabric" 
+                className="w-full h-full object-cover"
+              />
               
               {/* Play button overlay */}
               <button className="absolute inset-0 flex items-center justify-center bg-foreground/10 opacity-0 hover:opacity-100 transition-opacity duration-300">
