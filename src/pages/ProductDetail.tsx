@@ -7,6 +7,7 @@ import { useCart } from "@/contexts/CartContext";
 import Header from "@/components/storefront/Header";
 import Footer from "@/components/storefront/Footer";
 import ProductCard from "@/components/storefront/ProductCard";
+import ProductReviews from "@/components/storefront/ProductReviews";
 import { toast } from "sonner";
 
 const ProductDetail = () => {
@@ -389,6 +390,9 @@ const ProductDetail = () => {
             </ul>
           </div>
         </div>
+
+        {/* Customer Reviews Section */}
+        <ProductReviews productId={product.id} productName={product.name} />
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (
