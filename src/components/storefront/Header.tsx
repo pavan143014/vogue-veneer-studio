@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { Search, ShoppingBag, Heart, Menu, X, User, ChevronDown, Sparkles, Gift, Percent } from "lucide-react";
+import { Search, ShoppingBag, Menu, X, User, ChevronDown, Sparkles, Gift, Percent } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/stores/cartStore";
 import { Link, useNavigate } from "react-router-dom";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { categories } from "@/data/categories";
 import { motion, AnimatePresence } from "framer-motion";
+import WishlistDrawer from "./WishlistDrawer";
 
 const promoMessages = [
   { icon: Sparkles, text: "✨ Free Shipping on Orders Above ₹999 ✨" },
@@ -272,16 +273,13 @@ const Header = () => {
             </motion.div>
             
             <motion.div
-              whileHover={{ scale: 1.1 }}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.5 }}
+              whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="hover:bg-gradient-to-br hover:from-coral/10 hover:to-coral/20 hover:text-coral transition-all duration-300 rounded-xl relative group"
-              >
-                <Heart size={20} className="group-hover:fill-coral/30 transition-all duration-300" />
-              </Button>
+              <WishlistDrawer />
             </motion.div>
             
             <motion.div
