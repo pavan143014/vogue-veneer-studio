@@ -104,28 +104,28 @@ const ShopifyProductCard = ({ product }: ShopifyProductCardProps) => {
             />
           </button>
 
-          {/* Quick Actions - Show on Hover */}
+          {/* Quick Actions - Always visible on mobile, hover on desktop */}
           <div 
-            className={`absolute inset-x-4 bottom-4 flex gap-2 transition-all duration-300 ${
-              isHovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+            className={`absolute inset-x-4 bottom-4 flex gap-2 transition-all duration-300 md:opacity-0 md:translate-y-4 ${
+              isHovered ? "md:opacity-100 md:translate-y-0" : ""
             }`}
           >
             <Button 
               size="lg" 
               variant="secondary"
-              className="flex-1 bg-background/95 backdrop-blur-sm hover:bg-background font-body text-sm font-semibold shadow-2xl"
+              className="flex-1 bg-background/95 backdrop-blur-sm hover:bg-background font-body text-xs md:text-sm font-semibold shadow-2xl py-2 md:py-3"
               onClick={handleQuickView}
             >
-              <Eye size={16} className="mr-2" />
+              <Eye size={16} className="mr-1.5" />
               Quick View
             </Button>
             <Button 
               size="lg" 
-              className="flex-1 bg-primary hover:bg-primary/90 font-body text-sm font-semibold shadow-2xl"
+              className="flex-1 bg-primary hover:bg-primary/90 font-body text-xs md:text-sm font-semibold shadow-2xl py-2 md:py-3"
               onClick={handleAddToCart}
               disabled={isLoading || !firstVariant?.availableForSale}
             >
-              <ShoppingBag size={16} className="mr-2" />
+              <ShoppingBag size={16} className="mr-1.5" />
               Add
             </Button>
           </div>
