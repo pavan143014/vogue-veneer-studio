@@ -411,8 +411,12 @@ const Header = () => {
         </AnimatePresence>
       </div>
 
-      {/* Sub Header Navigation Menu */}
-      <div className="hidden md:block border-t border-border/30 bg-muted/30">
+      {/* Sticky Sub Header Navigation Menu */}
+      <div 
+        className={`hidden md:block border-t border-border/30 bg-background/95 backdrop-blur-md sticky top-0 z-40 transition-shadow duration-300 ${
+          isScrolled ? "shadow-md" : ""
+        }`}
+      >
         <div className="container mx-auto px-4">
           <nav className="flex items-center justify-center gap-1">
             <Link
@@ -440,13 +444,43 @@ const Header = () => {
             </Link>
             <span className="text-border">|</span>
             {categories.slice(0, 5).map((category, index) => (
-              <div key={category.name} className="flex items-center">
+              <div 
+                key={category.name} 
+                className="flex items-center relative group"
+              >
                 <Link
                   to={category.href}
-                  className="px-4 py-2.5 font-body text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
+                  className="flex items-center gap-1 px-4 py-2.5 font-body text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
                 >
                   {category.name}
+                  <ChevronDown size={12} className="transition-transform duration-200 group-hover:rotate-180" />
                 </Link>
+                
+                {/* Hover Dropdown */}
+                <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <div className="bg-card/95 backdrop-blur-xl border border-border rounded-xl shadow-xl py-2 min-w-[200px] overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-coral/5 via-transparent to-gold/5 pointer-events-none" />
+                    <Link
+                      to={category.href}
+                      className="block px-4 py-2.5 font-body text-sm font-semibold text-primary hover:bg-primary/10 transition-colors relative"
+                    >
+                      View All {category.name}
+                    </Link>
+                    <div className="h-px bg-border/50 mx-3 my-1" />
+                    {category.subcategories.map((sub) => (
+                      <Link
+                        key={sub.name}
+                        to={sub.href}
+                        className="block px-4 py-2 font-body text-xs text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors relative group/item"
+                      >
+                        <span className="flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-primary/40 group-hover/item:bg-primary transition-colors" />
+                          {sub.name}
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
                 {index < 4 && <span className="text-border">|</span>}
               </div>
             ))}
