@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { useCartSync } from "@/hooks/useCartSync";
 import CartDrawer from "@/components/storefront/CartDrawer";
+import MobileBottomNav from "@/components/storefront/MobileBottomNav";
 import Index from "./pages/Index";
 import Shop from "./pages/Shop";
 import ProductDetail from "./pages/ProductDetail";
@@ -27,18 +28,20 @@ const AppContent = () => {
       <Sonner />
       <BrowserRouter>
         <CartDrawer />
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/shop" element={<Shop />} />
-          <Route path="/product/:handle" element={<ProductDetail />} />
-          <Route path="/order-confirmation" element={<OrderConfirmation />} />
-          <Route path="/track-order" element={<TrackOrder />} />
-          <Route path="/about" element={<AboutUs />} />
-          <Route path="/contact" element={<ContactUs />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <MobileBottomNav />
+        <div className="pb-16 md:pb-0">
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/shop" element={<Shop />} />
+            <Route path="/product/:handle" element={<ProductDetail />} />
+            <Route path="/order-confirmation" element={<OrderConfirmation />} />
+            <Route path="/track-order" element={<TrackOrder />} />
+            <Route path="/about" element={<AboutUs />} />
+            <Route path="/contact" element={<ContactUs />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </div>
       </BrowserRouter>
     </>
   );
