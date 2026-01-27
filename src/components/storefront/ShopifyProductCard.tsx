@@ -1,48 +1,126 @@
-import { Heart, ShoppingBag, Star, Eye } from "lucide-react";
-import { useState } from "react";
+import { Heart, ShoppingBag, Star, Eye, Check } from "lucide-react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { useCartStore, ShopifyProduct } from "@/stores/cartStore";
 import { useWishlistStore } from "@/stores/wishlistStore";
 import { toast } from "sonner";
 import QuickViewModal from "./QuickViewModal";
+import { cn } from "@/lib/utils";
 
 interface ShopifyProductCardProps {
   product: ShopifyProduct;
 }
 
+// Color mapping for visual swatches
+const colorMap: Record<string, string> = {
+  "red": "bg-red-500",
+  "burgundy red": "bg-red-800",
+  "royal blue": "bg-blue-700",
+  "blue": "bg-blue-500",
+  "navy": "bg-blue-900",
+  "green": "bg-green-500",
+  "emerald green": "bg-emerald-600",
+  "olive green": "bg-olive",
+  "black": "bg-gray-900",
+  "white": "bg-white border-2 border-gray-300",
+  "cream": "bg-amber-50 border border-gray-200",
+  "ivory": "bg-amber-50 border border-gray-200",
+  "beige": "bg-amber-100",
+  "gold": "bg-yellow-500",
+  "golden": "bg-yellow-500",
+  "silver": "bg-gray-300",
+  "pink": "bg-pink-400",
+  "rose": "bg-rose-400",
+  "purple": "bg-purple-500",
+  "maroon": "bg-red-900",
+  "yellow": "bg-yellow-400",
+  "orange": "bg-orange-500",
+  "brown": "bg-amber-700",
+  "grey": "bg-gray-500",
+  "gray": "bg-gray-500",
+  "teal": "bg-teal-500",
+  "turquoise": "bg-cyan-400",
+  "multi": "bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500",
+  "multicolor": "bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500",
+};
+
+const getColorClass = (colorName: string): string => {
+  const lowerColor = colorName.toLowerCase();
+  return colorMap[lowerColor] || "bg-gradient-to-br from-coral/50 to-gold/50";
+};
+
 const ShopifyProductCard = ({ product }: ShopifyProductCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const { toggleItem, isInWishlist } = useWishlistStore();
   const isLiked = isInWishlist(product.node.id);
   const { addItem, isLoading } = useCartStore();
 
   const { node } = product;
   const imageUrl = node.images?.edges?.[0]?.node?.url;
-  const price = parseFloat(node.priceRange.minVariantPrice.amount);
   const currencyCode = node.priceRange.minVariantPrice.currencyCode;
-  const firstVariant = node.variants?.edges?.[0]?.node;
+
+  // Get product options (size, color, etc.)
+  const productOptions = useMemo(() => {
+    return node.options?.filter(opt => opt.name.toLowerCase() !== "title") || [];
+  }, [node.options]);
+
+  // Initialize selected options with first values
+  useMemo(() => {
+    if (Object.keys(selectedOptions).length === 0 && productOptions.length > 0) {
+      const initialOptions: Record<string, string> = {};
+      productOptions.forEach(opt => {
+        if (opt.values.length > 0) {
+          initialOptions[opt.name] = opt.values[0];
+        }
+      });
+      setSelectedOptions(initialOptions);
+    }
+  }, [productOptions, selectedOptions]);
+
+  // Find the variant that matches selected options
+  const selectedVariant = useMemo(() => {
+    if (!node.variants?.edges) return null;
+    
+    return node.variants.edges.find(({ node: variant }) => {
+      if (!variant.selectedOptions) return false;
+      return variant.selectedOptions.every(opt => 
+        selectedOptions[opt.name] === opt.value
+      );
+    })?.node || node.variants.edges[0]?.node;
+  }, [node.variants, selectedOptions]);
+
+  const price = selectedVariant 
+    ? parseFloat(selectedVariant.price.amount) 
+    : parseFloat(node.priceRange.minVariantPrice.amount);
+
+  const handleOptionSelect = (optionName: string, value: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectedOptions(prev => ({ ...prev, [optionName]: value }));
+  };
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
-    if (!firstVariant) {
-      toast.error("This product is not available");
+    if (!selectedVariant) {
+      toast.error("Please select all options");
       return;
     }
 
     await addItem({
       product,
-      variantId: firstVariant.id,
-      variantTitle: firstVariant.title,
-      price: firstVariant.price,
+      variantId: selectedVariant.id,
+      variantTitle: selectedVariant.title,
+      price: selectedVariant.price,
       quantity: 1,
-      selectedOptions: firstVariant.selectedOptions || []
+      selectedOptions: selectedVariant.selectedOptions || []
     });
 
     toast.success("Added to cart!", {
-      description: node.title,
+      description: `${node.title} - ${Object.values(selectedOptions).join(", ")}`,
     });
   };
 
@@ -50,6 +128,10 @@ const ShopifyProductCard = ({ product }: ShopifyProductCardProps) => {
     e.preventDefault();
     e.stopPropagation();
     setIsQuickViewOpen(true);
+  };
+
+  const isColorOption = (optionName: string) => {
+    return optionName.toLowerCase().includes("color") || optionName.toLowerCase().includes("colour");
   };
 
   return (
@@ -119,15 +201,6 @@ const ShopifyProductCard = ({ product }: ShopifyProductCardProps) => {
               <Eye size={16} className="mr-1.5" />
               Quick View
             </Button>
-            <Button 
-              size="lg" 
-              className="flex-1 bg-primary hover:bg-primary/90 font-body text-xs md:text-sm font-semibold shadow-2xl py-2 md:py-3"
-              onClick={handleAddToCart}
-              disabled={isLoading || !firstVariant?.availableForSale}
-            >
-              <ShoppingBag size={16} className="mr-1.5" />
-              Add
-            </Button>
           </div>
         </div>
 
@@ -155,15 +228,72 @@ const ShopifyProductCard = ({ product }: ShopifyProductCardProps) => {
               23% OFF
             </span>
           </div>
+
+          {/* Variant Selectors */}
+          {productOptions.length > 0 && (
+            <div className="space-y-3 mb-4">
+              {productOptions.map((option) => (
+                <div key={option.name} onClick={(e) => e.stopPropagation()}>
+                  <p className="text-xs font-medium text-muted-foreground mb-1.5">
+                    {option.name}: <span className="text-foreground">{selectedOptions[option.name]}</span>
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {isColorOption(option.name) ? (
+                      // Color swatches
+                      option.values.map((value) => (
+                        <button
+                          key={value}
+                          onClick={(e) => handleOptionSelect(option.name, value, e)}
+                          className={cn(
+                            "w-7 h-7 rounded-full transition-all duration-200 flex items-center justify-center",
+                            getColorClass(value),
+                            selectedOptions[option.name] === value
+                              ? "ring-2 ring-primary ring-offset-2 ring-offset-background scale-110"
+                              : "hover:scale-105 opacity-80 hover:opacity-100"
+                          )}
+                          title={value}
+                        >
+                          {selectedOptions[option.name] === value && (
+                            <Check size={14} className={cn(
+                              "text-white",
+                              value.toLowerCase() === "white" || value.toLowerCase() === "cream" || value.toLowerCase() === "ivory" 
+                                ? "text-gray-800" 
+                                : ""
+                            )} />
+                          )}
+                        </button>
+                      ))
+                    ) : (
+                      // Size/other option pills
+                      option.values.map((value) => (
+                        <button
+                          key={value}
+                          onClick={(e) => handleOptionSelect(option.name, value, e)}
+                          className={cn(
+                            "px-2.5 py-1 text-xs font-medium rounded-md transition-all duration-200",
+                            selectedOptions[option.name] === value
+                              ? "bg-primary text-primary-foreground shadow-sm"
+                              : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+                          )}
+                        >
+                          {value}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
           
           {/* Always Visible Add to Cart Button */}
           <Button 
             className="w-full bg-primary hover:bg-primary/90 font-body text-sm font-semibold shadow-md transition-all duration-300 hover:shadow-lg active:scale-[0.98]"
             onClick={handleAddToCart}
-            disabled={isLoading || !firstVariant?.availableForSale}
+            disabled={isLoading || !selectedVariant?.availableForSale}
           >
             <ShoppingBag size={16} className="mr-2" />
-            {isLoading ? "Adding..." : "Add to Cart"}
+            {isLoading ? "Adding..." : !selectedVariant?.availableForSale ? "Out of Stock" : "Add to Cart"}
           </Button>
         </div>
       </div>
