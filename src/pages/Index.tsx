@@ -6,6 +6,7 @@ import FeaturedProducts from "@/components/storefront/FeaturedProducts";
 import Testimonials from "@/components/storefront/Testimonials";
 import BrandStory from "@/components/storefront/BrandStory";
 import Footer from "@/components/storefront/Footer";
+import PromoBanner from "@/components/storefront/PromoBanner";
 
 const Index = () => {
   return (
@@ -14,10 +15,13 @@ const Index = () => {
       <main>
         <Hero />
         <Features />
+        <PromoBanner variant="flash" />
         <Collections />
         <FeaturedProducts />
+        <PromoBanner variant="secondary" />
         <Testimonials />
         <BrandStory />
+        <PromoBanner variant="accent" />
       </main>
       <Footer />
     </div>

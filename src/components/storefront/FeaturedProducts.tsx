@@ -1,6 +1,6 @@
 import ShopifyProductCard from "./ShopifyProductCard";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ShoppingBag, Loader2 } from "lucide-react";
+import { ArrowRight, ShoppingBag, Loader2, Sparkles } from "lucide-react";
 import { useShopifyProducts } from "@/hooks/useShopifyProducts";
 
 const FeaturedProducts = () => {
@@ -12,16 +12,19 @@ const FeaturedProducts = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-12">
           <div>
-            <span className="font-body text-sm tracking-[0.3em] uppercase text-primary font-medium">
-              Handpicked For You
-            </span>
-            <h2 className="font-display text-3xl md:text-5xl font-semibold text-foreground mt-3">
-              Featured Products
+            <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full mb-4">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <span className="font-body text-sm tracking-wider uppercase text-primary font-medium">
+                Handpicked For You
+              </span>
+            </div>
+            <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-foreground">
+              Featured <span className="text-gradient">Products</span>
             </h2>
           </div>
           <Button 
             variant="ghost" 
-            className="mt-4 md:mt-0 font-body text-sm text-primary hover:text-primary/80 group"
+            className="mt-6 md:mt-0 font-body text-sm text-primary hover:text-primary-foreground hover:bg-primary group px-6"
           >
             View All Products
             <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
@@ -30,26 +33,30 @@ const FeaturedProducts = () => {
 
         {/* Loading State */}
         {isLoading && (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <div className="flex flex-col items-center justify-center py-24">
+            <div className="relative">
+              <div className="w-16 h-16 rounded-full bg-primary/20 animate-ping absolute inset-0" />
+              <Loader2 className="w-16 h-16 animate-spin text-primary relative z-10" />
+            </div>
+            <p className="font-body text-muted-foreground mt-4">Loading beautiful products...</p>
           </div>
         )}
 
         {/* Error State */}
         {error && (
-          <div className="text-center py-20">
-            <p className="text-destructive font-body">Failed to load products. Please try again.</p>
+          <div className="text-center py-20 bg-destructive/10 rounded-3xl border border-destructive/20">
+            <p className="text-destructive font-body text-lg">Failed to load products. Please try again.</p>
           </div>
         )}
 
         {/* Empty State */}
         {!isLoading && !error && (!products || products.length === 0) && (
-          <div className="text-center py-20 bg-card rounded-2xl border border-border">
-            <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-              <ShoppingBag size={32} className="text-muted-foreground" />
+          <div className="text-center py-20 bg-card rounded-3xl border-2 border-dashed border-border">
+            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-coral/20 to-gold/20 flex items-center justify-center mx-auto mb-6">
+              <ShoppingBag size={40} className="text-primary" />
             </div>
-            <h3 className="font-display text-2xl text-foreground mb-2">No products found</h3>
-            <p className="font-body text-muted-foreground max-w-md mx-auto">
+            <h3 className="font-display text-3xl font-bold text-foreground mb-3">No products found</h3>
+            <p className="font-body text-muted-foreground max-w-md mx-auto text-lg">
               Your store doesn't have any products yet. Create your first product by telling me what you'd like to sell!
             </p>
           </div>
@@ -70,25 +77,33 @@ const FeaturedProducts = () => {
           </div>
         )}
 
-        {/* CTA Banner */}
-        <div className="mt-16 bg-gradient-to-r from-accent via-primary to-accent rounded-2xl p-8 md:p-12 text-center text-primary-foreground">
-          <h3 className="font-display text-2xl md:text-4xl font-semibold mb-3">
-            New to Aroma Ethnic?
-          </h3>
-          <p className="font-body text-sm md:text-base opacity-90 mb-6 max-w-lg mx-auto">
-            Sign up now and get 15% off on your first order plus exclusive access to new arrivals!
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center max-w-md mx-auto">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="flex-1 px-4 py-3 rounded-lg bg-background/20 backdrop-blur-sm border border-primary-foreground/30 placeholder:text-primary-foreground/60 text-primary-foreground font-body text-sm focus:outline-none focus:ring-2 focus:ring-primary-foreground/50"
-            />
-            <Button 
-              className="bg-background text-primary hover:bg-background/90 font-body text-sm px-6"
-            >
-              Subscribe
-            </Button>
+        {/* Newsletter CTA Banner */}
+        <div className="mt-20 relative overflow-hidden rounded-3xl">
+          <div className="absolute inset-0 bg-gradient-to-r from-coral via-gold to-teal" />
+          <div className="absolute inset-0 opacity-30">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-white/20 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 left-0 w-80 h-80 bg-white/20 rounded-full blur-3xl" />
+          </div>
+          
+          <div className="relative z-10 p-8 md:p-16 text-center text-primary-foreground">
+            <h3 className="font-display text-3xl md:text-5xl font-bold mb-4">
+              New to Aroma Ethnic?
+            </h3>
+            <p className="font-body text-base md:text-lg opacity-90 mb-8 max-w-lg mx-auto">
+              Sign up now and get 15% off on your first order plus exclusive access to new arrivals!
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
+              <input
+                type="email"
+                placeholder="Enter your email"
+                className="flex-1 px-5 py-4 rounded-xl bg-background/20 backdrop-blur-sm border border-primary-foreground/30 placeholder:text-primary-foreground/60 text-primary-foreground font-body focus:outline-none focus:ring-2 focus:ring-primary-foreground/50"
+              />
+              <Button 
+                className="bg-background text-foreground hover:bg-background/90 font-body font-semibold px-8 py-4 text-base shadow-xl"
+              >
+                Subscribe
+              </Button>
+            </div>
           </div>
         </div>
       </div>
