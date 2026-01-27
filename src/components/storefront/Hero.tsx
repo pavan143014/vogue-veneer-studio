@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import heroModel from "@/assets/hero-model.jpg";
 
 const Hero = () => {
   return (
@@ -68,20 +69,16 @@ const Hero = () => {
             </div>
           </div>
 
-          {/* Hero Image Placeholder */}
+          {/* Hero Image */}
           <div className="relative hidden md:block animate-scale-in">
             <div className="relative aspect-[3/4] max-w-md mx-auto">
               {/* Main image frame */}
-              <div className="absolute inset-0 bg-gradient-to-br from-gold-light to-cream rounded-t-full border-4 border-gold/30 overflow-hidden shadow-2xl">
-                <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-rose-light/30 to-gold/30">
-                  <div className="text-center p-8">
-                    <div className="w-32 h-32 mx-auto mb-4 rounded-full bg-primary/20 flex items-center justify-center">
-                      <span className="font-display text-4xl text-primary">✿</span>
-                    </div>
-                    <p className="font-display text-xl text-accent italic">Featured Look</p>
-                    <p className="font-body text-sm text-muted-foreground mt-2">Connect Shopify to display products</p>
-                  </div>
-                </div>
+              <div className="absolute inset-0 rounded-t-full border-4 border-gold/30 overflow-hidden shadow-2xl">
+                <img 
+                  src={heroModel} 
+                  alt="Featured ethnic dress" 
+                  className="w-full h-full object-cover object-top"
+                />
               </div>
               
               {/* Floating badge */}

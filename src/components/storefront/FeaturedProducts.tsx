@@ -2,13 +2,23 @@ import ProductCard from "./ProductCard";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 
+// Import product images
+import anarkaliKurthi from "@/assets/products/anarkali-kurthi.jpg";
+import cottonDress from "@/assets/products/cotton-dress.jpg";
+import silkKurthi from "@/assets/products/silk-kurthi.jpg";
+import chikankariKurthi from "@/assets/products/chikankari-kurthi.jpg";
+import georgetteDress from "@/assets/products/georgette-dress.jpg";
+import blockPrintKurthi from "@/assets/products/block-print-kurthi.jpg";
+import mirrorWorkDress from "@/assets/products/mirror-work-dress.jpg";
+import rayonKurthi from "@/assets/products/rayon-kurthi.jpg";
+
 const FeaturedProducts = () => {
-  // Sample products - will be replaced with Shopify data
   const products = [
     {
       name: "Embroidered Anarkali Kurthi",
       price: 1499,
       originalPrice: 2499,
+      image: anarkaliKurthi,
       category: "Kurthis",
       isNew: true,
       isSale: true,
@@ -16,6 +26,7 @@ const FeaturedProducts = () => {
     {
       name: "Cotton Printed A-Line Dress",
       price: 1299,
+      image: cottonDress,
       category: "Dresses",
       isNew: true,
     },
@@ -23,17 +34,20 @@ const FeaturedProducts = () => {
       name: "Silk Blend Festive Kurthi",
       price: 2199,
       originalPrice: 2999,
+      image: silkKurthi,
       category: "Festive",
       isSale: true,
     },
     {
       name: "Casual Chikankari Kurthi",
       price: 999,
+      image: chikankariKurthi,
       category: "Kurthis",
     },
     {
       name: "Georgette Floor Length Dress",
       price: 2499,
+      image: georgetteDress,
       category: "Dresses",
       isNew: true,
     },
@@ -41,18 +55,21 @@ const FeaturedProducts = () => {
       name: "Block Print Cotton Kurthi",
       price: 899,
       originalPrice: 1299,
+      image: blockPrintKurthi,
       category: "Casual",
       isSale: true,
     },
     {
       name: "Mirror Work Party Dress",
       price: 3299,
+      image: mirrorWorkDress,
       category: "Festive",
       isNew: true,
     },
     {
       name: "Rayon Daily Wear Kurthi",
       price: 699,
+      image: rayonKurthi,
       category: "Casual",
     },
   ];

@@ -6,7 +6,7 @@ interface ProductCardProps {
   name: string;
   price: number;
   originalPrice?: number;
-  image?: string;
+  image: string;
   category: string;
   isNew?: boolean;
   isSale?: boolean;
@@ -16,6 +16,7 @@ const ProductCard = ({
   name, 
   price, 
   originalPrice, 
+  image,
   category, 
   isNew = false, 
   isSale = false 
@@ -35,15 +36,11 @@ const ProductCard = ({
     >
       {/* Image Container */}
       <div className="relative aspect-[3/4] bg-gradient-to-br from-cream-dark to-muted overflow-hidden">
-        {/* Placeholder for product image */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center p-4">
-            <div className="w-20 h-20 mx-auto mb-3 rounded-full bg-primary/10 flex items-center justify-center">
-              <span className="text-3xl">👗</span>
-            </div>
-            <p className="font-body text-xs text-muted-foreground">Product Image</p>
-          </div>
-        </div>
+        <img 
+          src={image} 
+          alt={name}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
 
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-2">
