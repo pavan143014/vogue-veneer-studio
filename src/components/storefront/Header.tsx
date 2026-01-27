@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, ShoppingBag, Menu, X, User, ChevronDown, Sparkles, Gift, Percent } from "lucide-react";
+import { Search, ShoppingBag, Menu, X, User, ChevronDown, Sparkles, Gift, Percent, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/stores/cartStore";
 import { Link, useNavigate } from "react-router-dom";
@@ -151,6 +151,19 @@ const Header = () => {
                 className="flex items-center gap-1 px-4 py-2.5 font-body text-sm font-medium text-foreground hover:text-primary transition-all duration-300 rounded-xl hover:bg-gradient-to-r hover:from-primary/10 hover:to-gold/10"
               >
                 Shop All
+              </Link>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.05 }}
+            >
+              <Link
+                to="/track-order"
+                className="flex items-center gap-1.5 px-4 py-2.5 font-body text-sm font-medium text-foreground hover:text-primary transition-all duration-300 rounded-xl hover:bg-gradient-to-r hover:from-primary/10 hover:to-gold/10"
+              >
+                <Package size={16} />
+                Track Order
               </Link>
             </motion.div>
             {categories.map((category, index) => (
