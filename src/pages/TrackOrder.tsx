@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Label } from "@/components/ui/label";
 import Header from "@/components/storefront/Header";
 import Footer from "@/components/storefront/Footer";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,51 +35,49 @@ interface Order {
   currency: string;
   estimated_delivery: string | null;
   created_at: string;
+  items: OrderItem[];
 }
 
 const TrackOrder = () => {
   const [orderNumber, setOrderNumber] = useState("");
+  const [email, setEmail] = useState("");
   const [order, setOrder] = useState<Order | null>(null);
-  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!orderNumber.trim()) return;
+    if (!orderNumber.trim() || !email.trim()) return;
 
     setIsLoading(true);
     setError(null);
     setHasSearched(true);
 
     try {
-      // Fetch order
-      const { data: orderData, error: orderError } = await supabase
-        .from("orders")
-        .select("*")
-        .eq("order_number", orderNumber.trim().toUpperCase())
-        .maybeSingle();
+      const { data, error: fnError } = await supabase.functions.invoke('get-order', {
+        body: {
+          order_number: orderNumber.trim().toUpperCase(),
+          email: email.trim().toLowerCase(),
+        },
+      });
 
-      if (orderError) throw orderError;
+      if (fnError) {
+        throw new Error(fnError.message || 'Failed to fetch order');
+      }
 
-      if (!orderData) {
+      if (data?.error) {
         setOrder(null);
-        setOrderItems([]);
-        setError("Order not found. Please check your order ID and try again.");
+        setError(data.error);
         return;
       }
 
-      setOrder(orderData);
-
-      // Fetch order items
-      const { data: itemsData, error: itemsError } = await supabase
-        .from("order_items")
-        .select("*")
-        .eq("order_id", orderData.id);
-
-      if (itemsError) throw itemsError;
-      setOrderItems(itemsData || []);
+      if (data?.success && data?.order) {
+        setOrder(data.order);
+      } else {
+        setOrder(null);
+        setError("Order not found. Please check your order ID and email.");
+      }
     } catch (err) {
       console.error("Error fetching order:", err);
       setError("Something went wrong. Please try again.");
@@ -106,6 +105,7 @@ const TrackOrder = () => {
   ];
 
   const currentStep = order ? getStatusStep(order.status) : 0;
+  const orderItems = order?.items || [];
 
   return (
     <div className="min-h-screen bg-background">
@@ -118,31 +118,48 @@ const TrackOrder = () => {
             Track Your Order
           </h1>
           <p className="font-body text-muted-foreground max-w-md mx-auto">
-            Enter your order ID to check the current status of your order
+            Enter your order ID and email to check the current status of your order
           </p>
         </div>
 
         {/* Search Form */}
-        <form onSubmit={handleSearch} className="max-w-md mx-auto mb-12">
-          <div className="flex gap-2">
+        <form onSubmit={handleSearch} className="max-w-md mx-auto mb-12 space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="orderNumber" className="font-body text-sm">Order ID</Label>
             <Input
+              id="orderNumber"
               type="text"
-              placeholder="Enter Order ID (e.g., AE-XXXXXX)"
+              placeholder="e.g., ORD-XXXXXX-XXXX"
               value={orderNumber}
               onChange={(e) => setOrderNumber(e.target.value)}
-              className="flex-1 h-12 font-body"
+              className="h-12 font-body"
             />
-            <Button type="submit" className="h-12 px-6" disabled={isLoading}>
-              {isLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <>
-                  <Search className="w-4 h-4 mr-2" />
-                  Track
-                </>
-              )}
-            </Button>
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="email" className="font-body text-sm">Email Address</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="Enter the email used for the order"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="h-12 font-body"
+            />
+          </div>
+          <Button 
+            type="submit" 
+            className="w-full h-12" 
+            disabled={isLoading || !orderNumber.trim() || !email.trim()}
+          >
+            {isLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <>
+                <Search className="w-4 h-4 mr-2" />
+                Track Order
+              </>
+            )}
+          </Button>
         </form>
 
         {/* Error State */}
@@ -153,7 +170,7 @@ const TrackOrder = () => {
               <div>
                 <p className="font-body font-medium text-foreground">{error}</p>
                 <p className="font-body text-sm text-muted-foreground mt-1">
-                  Make sure you're using the order ID from your confirmation email.
+                  Make sure you're using the order ID and email from your confirmation.
                 </p>
               </div>
             </CardContent>
@@ -349,7 +366,7 @@ const TrackOrder = () => {
               <Package size={32} className="text-muted-foreground" />
             </div>
             <p className="font-body text-muted-foreground">
-              Enter your order ID above to track your order
+              Enter your order ID and email above to track your order
             </p>
           </div>
         )}
