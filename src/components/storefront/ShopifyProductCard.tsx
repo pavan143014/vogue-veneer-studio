@@ -1,4 +1,4 @@
-import { Heart, ShoppingBag, Star, Eye, Check, Zap } from "lucide-react";
+import { Heart, ShoppingBag, Star, Eye, Check, Zap, Minus, Plus } from "lucide-react";
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { useCartStore, ShopifyProduct } from "@/stores/cartStore";
@@ -54,6 +54,7 @@ const ShopifyProductCard = ({ product }: ShopifyProductCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
+  const [quantity, setQuantity] = useState(1);
   const [isBuyingNow, setIsBuyingNow] = useState(false);
   const { toggleItem, isInWishlist } = useWishlistStore();
   const isLiked = isInWishlist(product.node.id);
@@ -117,13 +118,20 @@ const ShopifyProductCard = ({ product }: ShopifyProductCardProps) => {
       variantId: selectedVariant.id,
       variantTitle: selectedVariant.title,
       price: selectedVariant.price,
-      quantity: 1,
+      quantity: quantity,
       selectedOptions: selectedVariant.selectedOptions || []
     });
 
     toast.success("Added to cart!", {
-      description: `${node.title} - ${Object.values(selectedOptions).join(", ")}`,
+      description: `${quantity}x ${node.title} - ${Object.values(selectedOptions).join(", ")}`,
     });
+    setQuantity(1); // Reset quantity after adding
+  };
+
+  const handleQuantityChange = (delta: number, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setQuantity(prev => Math.max(1, Math.min(10, prev + delta)));
   };
 
   const handleQuickView = (e: React.MouseEvent) => {
@@ -145,7 +153,7 @@ const ShopifyProductCard = ({ product }: ShopifyProductCardProps) => {
     try {
       const result = await createShopifyCartForCheckout({
         variantId: selectedVariant.id,
-        quantity: 1
+        quantity: quantity
       });
       
       if (result?.checkoutUrl) {
@@ -315,6 +323,28 @@ const ShopifyProductCard = ({ product }: ShopifyProductCardProps) => {
             </span>
           </div>
           
+          {/* Quantity Selector */}
+          <div className="flex items-center justify-between mb-3" onClick={(e) => e.stopPropagation()}>
+            <span className="text-xs font-medium text-muted-foreground">Quantity</span>
+            <div className="flex items-center gap-1 bg-muted rounded-lg p-0.5">
+              <button
+                onClick={(e) => handleQuantityChange(-1, e)}
+                disabled={quantity <= 1}
+                className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-background transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <Minus size={14} />
+              </button>
+              <span className="w-8 text-center text-sm font-semibold">{quantity}</span>
+              <button
+                onClick={(e) => handleQuantityChange(1, e)}
+                disabled={quantity >= 10}
+                className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-background transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <Plus size={14} />
+              </button>
+            </div>
+          </div>
+
           {/* Action Buttons */}
           <div className="flex gap-2">
             <Button 
