@@ -1,10 +1,10 @@
-import { Link } from "react-router-dom";
-import { Heart, ShoppingBag, Star } from "lucide-react";
+import { Heart, ShoppingBag, Star, Eye } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useCartStore, ShopifyProduct } from "@/stores/cartStore";
 import { useWishlistStore } from "@/stores/wishlistStore";
 import { toast } from "sonner";
+import QuickViewModal from "./QuickViewModal";
 
 interface ShopifyProductCardProps {
   product: ShopifyProduct;
@@ -12,6 +12,7 @@ interface ShopifyProductCardProps {
 
 const ShopifyProductCard = ({ product }: ShopifyProductCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const { toggleItem, isInWishlist } = useWishlistStore();
   const isLiked = isInWishlist(product.node.id);
   const { addItem, isLoading } = useCartStore();
@@ -45,12 +46,19 @@ const ShopifyProductCard = ({ product }: ShopifyProductCardProps) => {
     });
   };
 
+  const handleQuickView = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsQuickViewOpen(true);
+  };
+
   return (
-    <Link to={`/product/${node.handle}`}>
+    <>
       <div 
-        className="group relative bg-card rounded-2xl overflow-hidden border border-border hover:border-primary/40 transition-all duration-500 hover:shadow-2xl hover:-translate-y-1"
+        className="group relative bg-card rounded-2xl overflow-hidden border border-border hover:border-primary/40 transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 cursor-pointer"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        onClick={handleQuickView}
       >
         {/* Image Container */}
         <div className="relative aspect-[3/4] bg-gradient-to-br from-muted to-ivory-dark overflow-hidden">
@@ -96,20 +104,29 @@ const ShopifyProductCard = ({ product }: ShopifyProductCardProps) => {
             />
           </button>
 
-          {/* Quick Add to Cart - Show on Hover */}
+          {/* Quick Actions - Show on Hover */}
           <div 
-            className={`absolute inset-x-4 bottom-4 transition-all duration-300 ${
+            className={`absolute inset-x-4 bottom-4 flex gap-2 transition-all duration-300 ${
               isHovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
             }`}
           >
             <Button 
               size="lg" 
-              className="w-full bg-primary hover:bg-primary/90 font-body text-sm font-semibold shadow-2xl"
+              variant="secondary"
+              className="flex-1 bg-background/95 backdrop-blur-sm hover:bg-background font-body text-sm font-semibold shadow-2xl"
+              onClick={handleQuickView}
+            >
+              <Eye size={16} className="mr-2" />
+              Quick View
+            </Button>
+            <Button 
+              size="lg" 
+              className="flex-1 bg-primary hover:bg-primary/90 font-body text-sm font-semibold shadow-2xl"
               onClick={handleAddToCart}
               disabled={isLoading || !firstVariant?.availableForSale}
             >
               <ShoppingBag size={16} className="mr-2" />
-              {firstVariant?.availableForSale ? "Add to Cart" : "Out of Stock"}
+              Add
             </Button>
           </div>
         </div>
@@ -135,7 +152,14 @@ const ShopifyProductCard = ({ product }: ShopifyProductCardProps) => {
           </div>
         </div>
       </div>
-    </Link>
+
+      {/* Quick View Modal */}
+      <QuickViewModal 
+        product={product}
+        isOpen={isQuickViewOpen}
+        onClose={() => setIsQuickViewOpen(false)}
+      />
+    </>
   );
 };
 
