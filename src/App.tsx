@@ -9,6 +9,7 @@ import CartDrawer from "@/components/storefront/CartDrawer";
 import Index from "./pages/Index";
 import ProductDetail from "./pages/ProductDetail";
 import OrderConfirmation from "./pages/OrderConfirmation";
+import TrackOrder from "./pages/TrackOrder";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const AppContent = () => {
           <Route path="/" element={<Index />} />
           <Route path="/product/:handle" element={<ProductDetail />} />
           <Route path="/order-confirmation" element={<OrderConfirmation />} />
+          <Route path="/track-order" element={<TrackOrder />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
