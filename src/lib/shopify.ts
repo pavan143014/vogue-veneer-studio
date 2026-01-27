@@ -335,3 +335,20 @@ export async function fetchProductByHandle(handle: string): Promise<ShopifyProdu
   const data = await storefrontApiRequest(PRODUCT_BY_HANDLE_QUERY, { handle });
   return data?.data?.productByHandle || null;
 }
+
+// Create cart for immediate checkout (Buy Now)
+export async function createShopifyCartForCheckout(item: { variantId: string; quantity: number }): Promise<{ checkoutUrl: string } | null> {
+  const data = await storefrontApiRequest(CART_CREATE_MUTATION, {
+    input: { lines: [{ quantity: item.quantity, merchandiseId: item.variantId }] },
+  });
+
+  if (data?.data?.cartCreate?.userErrors?.length > 0) {
+    console.error('Cart creation failed:', data.data.cartCreate.userErrors);
+    return null;
+  }
+
+  const cart = data?.data?.cartCreate?.cart;
+  if (!cart?.checkoutUrl) return null;
+
+  return { checkoutUrl: formatCheckoutUrl(cart.checkoutUrl) };
+}
