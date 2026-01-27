@@ -1,4 +1,4 @@
-import { Heart, ShoppingBag, Star, Eye, Check, Zap, Minus, Plus } from "lucide-react";
+import { Heart, ShoppingBag, Star, Eye, Check, Zap, Minus, Plus, AlertCircle } from "lucide-react";
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { useCartStore, ShopifyProduct } from "@/stores/cartStore";
@@ -135,6 +135,11 @@ const ShopifyProductCard = ({ product }: ShopifyProductCardProps) => {
     ? parseFloat(selectedVariant.price.amount) 
     : parseFloat(node.priceRange.minVariantPrice.amount);
 
+  // Get stock availability
+  const stockQuantity = selectedVariant?.quantityAvailable;
+  const isLowStock = stockQuantity !== null && stockQuantity !== undefined && stockQuantity > 0 && stockQuantity <= 5;
+  const isOutOfStock = !selectedVariant?.availableForSale;
+
   const handleOptionSelect = (optionName: string, value: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -235,9 +240,22 @@ const ShopifyProductCard = ({ product }: ShopifyProductCardProps) => {
           {/* Gradient overlay on hover */}
           <div className={`absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`} />
 
-          {/* Sale badge */}
-          <div className="absolute top-3 left-3 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-body font-semibold shadow-lg">
-            NEW
+          {/* Badges */}
+          <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+            <div className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-body font-semibold shadow-lg">
+              NEW
+            </div>
+            {isLowStock && (
+              <div className="bg-amber-500 text-white px-2.5 py-1 rounded-full text-[10px] font-body font-semibold shadow-lg flex items-center gap-1">
+                <AlertCircle size={10} />
+                Only {stockQuantity} left
+              </div>
+            )}
+            {isOutOfStock && (
+              <div className="bg-destructive text-destructive-foreground px-2.5 py-1 rounded-full text-[10px] font-body font-semibold shadow-lg">
+                Out of Stock
+              </div>
+            )}
           </div>
 
           {/* Wishlist Button */}
