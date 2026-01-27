@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Search, ShoppingBag, Heart, Menu, X, User, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useCart } from "@/contexts/CartContext";
+import { useCartStore } from "@/stores/cartStore";
 import { Link } from "react-router-dom";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { categories } from "@/data/categories";
@@ -10,7 +10,8 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [mobileExpandedCategory, setMobileExpandedCategory] = useState<string | null>(null);
-  const { totalItems, setIsCartOpen } = useCart();
+  const { totalItems, setCartOpen } = useCartStore();
+  const itemCount = totalItems();
 
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
@@ -57,12 +58,12 @@ const Header = () => {
               variant="ghost" 
               size="icon" 
               className="relative"
-              onClick={() => setIsCartOpen(true)}
+              onClick={() => setCartOpen(true)}
             >
               <ShoppingBag size={20} />
-              {totalItems > 0 && (
+              {itemCount > 0 && (
                 <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center">
-                  {totalItems}
+                  {itemCount}
                 </span>
               )}
             </Button>

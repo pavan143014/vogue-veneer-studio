@@ -1,9 +1,11 @@
-import ProductCard from "./ProductCard";
+import ShopifyProductCard from "./ShopifyProductCard";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
-import { products } from "@/data/products";
+import { ArrowRight, ShoppingBag, Loader2 } from "lucide-react";
+import { useShopifyProducts } from "@/hooks/useShopifyProducts";
 
 const FeaturedProducts = () => {
+  const { data: products, isLoading, error } = useShopifyProducts(20);
+
   return (
     <section className="py-16 md:py-24 bg-muted/30" id="new">
       <div className="container mx-auto px-4">
@@ -26,27 +28,47 @@ const FeaturedProducts = () => {
           </Button>
         </div>
 
-        {/* Products Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-          {products.map((product, index) => (
-            <div
-              key={product.id}
-              className="animate-fade-in"
-              style={{ animationDelay: `${index * 0.05}s` }}
-            >
-              <ProductCard
-                id={product.id}
-                name={product.name}
-                price={product.price}
-                originalPrice={product.originalPrice}
-                image={product.image}
-                category={product.category}
-                isNew={product.isNew}
-                isSale={product.isSale}
-              />
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="text-center py-20">
+            <p className="text-destructive font-body">Failed to load products. Please try again.</p>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!isLoading && !error && (!products || products.length === 0) && (
+          <div className="text-center py-20 bg-card rounded-2xl border border-border">
+            <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+              <ShoppingBag size={32} className="text-muted-foreground" />
             </div>
-          ))}
-        </div>
+            <h3 className="font-display text-2xl text-foreground mb-2">No products found</h3>
+            <p className="font-body text-muted-foreground max-w-md mx-auto">
+              Your store doesn't have any products yet. Create your first product by telling me what you'd like to sell!
+            </p>
+          </div>
+        )}
+
+        {/* Products Grid */}
+        {products && products.length > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            {products.map((product, index) => (
+              <div
+                key={product.node.id}
+                className="animate-fade-in"
+                style={{ animationDelay: `${index * 0.05}s` }}
+              >
+                <ShopifyProductCard product={product} />
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* CTA Banner */}
         <div className="mt-16 bg-gradient-to-r from-accent via-primary to-accent rounded-2xl p-8 md:p-12 text-center text-primary-foreground">
