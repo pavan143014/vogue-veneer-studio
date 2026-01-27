@@ -1,8 +1,9 @@
 import ShopifyProductCard from "./ShopifyProductCard";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ShoppingBag, Loader2, Sparkles } from "lucide-react";
+import { ArrowRight, ShoppingBag, Sparkles } from "lucide-react";
 import { useShopifyProducts } from "@/hooks/useShopifyProducts";
 import { motion } from "framer-motion";
+import { ProductGridSkeleton } from "./ProductCardSkeleton";
 
 const FeaturedProducts = () => {
   const { data: products, isLoading, error } = useShopifyProducts(20);
@@ -54,20 +55,8 @@ const FeaturedProducts = () => {
           </motion.div>
         </motion.div>
 
-        {/* Loading State */}
-        {isLoading && (
-          <div className="flex flex-col items-center justify-center py-24">
-            <div className="relative">
-              <motion.div 
-                className="w-16 h-16 rounded-full bg-primary/20 absolute inset-0"
-                animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-              />
-              <Loader2 className="w-16 h-16 animate-spin text-primary relative z-10" />
-            </div>
-            <p className="font-body text-muted-foreground mt-4">Loading beautiful products...</p>
-          </div>
-        )}
+        {/* Loading State - Skeleton Grid */}
+        {isLoading && <ProductGridSkeleton count={8} />}
 
         {/* Error State */}
         {error && (
