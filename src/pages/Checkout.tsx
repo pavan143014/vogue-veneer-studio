@@ -71,6 +71,23 @@ const Checkout = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const generateOrderId = () => {
+    const timestamp = Date.now().toString(36).toUpperCase();
+    const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+    return `VRH-${timestamp}-${random}`;
+  };
+
+  const getEstimatedDelivery = () => {
+    const deliveryDate = new Date();
+    deliveryDate.setDate(deliveryDate.getDate() + 5 + Math.floor(Math.random() * 3));
+    return deliveryDate.toLocaleDateString("en-IN", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
   const handlePlaceOrder = async () => {
     if (!validateForm()) {
       toast.error("Please fill in all required fields correctly");
@@ -82,12 +99,31 @@ const Checkout = () => {
     // Simulate order processing
     await new Promise((resolve) => setTimeout(resolve, 2000));
     
-    toast.success("Order placed successfully!", {
-      description: "You will receive a confirmation email shortly.",
-    });
+    const orderData = {
+      orderId: generateOrderId(),
+      items: items.map((item) => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        image: item.image,
+        size: item.size,
+        color: item.color,
+        quantity: item.quantity,
+      })),
+      shippingDetails: formData,
+      subtotal: totalPrice,
+      shippingCost,
+      total: finalTotal,
+      estimatedDelivery: getEstimatedDelivery(),
+      orderDate: new Date().toLocaleDateString("en-IN", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }),
+    };
     
     clearCart();
-    navigate("/");
+    navigate("/order-confirmation", { state: orderData });
     
     setIsProcessing(false);
   };
