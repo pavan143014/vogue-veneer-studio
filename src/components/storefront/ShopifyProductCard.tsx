@@ -1,4 +1,4 @@
-import { Heart, ShoppingBag, Star, Eye, Check } from "lucide-react";
+import { Heart, ShoppingBag, Star, Eye, Check, Zap } from "lucide-react";
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { useCartStore, ShopifyProduct } from "@/stores/cartStore";
@@ -6,6 +6,7 @@ import { useWishlistStore } from "@/stores/wishlistStore";
 import { toast } from "sonner";
 import QuickViewModal from "./QuickViewModal";
 import { cn } from "@/lib/utils";
+import { createShopifyCartForCheckout } from "@/lib/shopify";
 
 interface ShopifyProductCardProps {
   product: ShopifyProduct;
@@ -53,6 +54,7 @@ const ShopifyProductCard = ({ product }: ShopifyProductCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
+  const [isBuyingNow, setIsBuyingNow] = useState(false);
   const { toggleItem, isInWishlist } = useWishlistStore();
   const isLiked = isInWishlist(product.node.id);
   const { addItem, isLoading } = useCartStore();
@@ -128,6 +130,35 @@ const ShopifyProductCard = ({ product }: ShopifyProductCardProps) => {
     e.preventDefault();
     e.stopPropagation();
     setIsQuickViewOpen(true);
+  };
+
+  const handleBuyNow = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!selectedVariant) {
+      toast.error("Please select all options");
+      return;
+    }
+
+    setIsBuyingNow(true);
+    try {
+      const result = await createShopifyCartForCheckout({
+        variantId: selectedVariant.id,
+        quantity: 1
+      });
+      
+      if (result?.checkoutUrl) {
+        window.open(result.checkoutUrl, '_blank');
+      } else {
+        toast.error("Failed to create checkout");
+      }
+    } catch (error) {
+      console.error('Buy now error:', error);
+      toast.error("Failed to proceed to checkout");
+    } finally {
+      setIsBuyingNow(false);
+    }
   };
 
   const isColorOption = (optionName: string) => {
@@ -286,15 +317,26 @@ const ShopifyProductCard = ({ product }: ShopifyProductCardProps) => {
             </div>
           )}
           
-          {/* Always Visible Add to Cart Button */}
-          <Button 
-            className="w-full bg-primary hover:bg-primary/90 font-body text-sm font-semibold shadow-md transition-all duration-300 hover:shadow-lg active:scale-[0.98]"
-            onClick={handleAddToCart}
-            disabled={isLoading || !selectedVariant?.availableForSale}
-          >
-            <ShoppingBag size={16} className="mr-2" />
-            {isLoading ? "Adding..." : !selectedVariant?.availableForSale ? "Out of Stock" : "Add to Cart"}
-          </Button>
+          {/* Action Buttons */}
+          <div className="flex gap-2">
+            <Button 
+              variant="outline"
+              className="flex-1 font-body text-sm font-semibold transition-all duration-300 hover:shadow-md active:scale-[0.98]"
+              onClick={handleAddToCart}
+              disabled={isLoading || !selectedVariant?.availableForSale}
+            >
+              <ShoppingBag size={16} className="mr-1.5" />
+              {isLoading ? "Adding..." : "Add to Cart"}
+            </Button>
+            <Button 
+              className="flex-1 bg-gradient-to-r from-primary to-coral hover:from-primary/90 hover:to-coral/90 font-body text-sm font-semibold shadow-md transition-all duration-300 hover:shadow-lg active:scale-[0.98]"
+              onClick={handleBuyNow}
+              disabled={isBuyingNow || !selectedVariant?.availableForSale}
+            >
+              <Zap size={16} className="mr-1.5" />
+              {isBuyingNow ? "Processing..." : !selectedVariant?.availableForSale ? "Out of Stock" : "Buy Now"}
+            </Button>
+          </div>
         </div>
       </div>
 
