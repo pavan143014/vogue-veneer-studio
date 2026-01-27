@@ -1,10 +1,8 @@
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
-// Shopify API Configuration
-export const SHOPIFY_API_VERSION = '2025-07';
+// Shopify API Configuration - only store domain is needed client-side
 export const SHOPIFY_STORE_PERMANENT_DOMAIN = 'chic-dress-studio-56i93.myshopify.com';
-export const SHOPIFY_STOREFRONT_URL = `https://${SHOPIFY_STORE_PERMANENT_DOMAIN}/api/${SHOPIFY_API_VERSION}/graphql.json`;
-export const SHOPIFY_STOREFRONT_TOKEN = 'cc1dc01377bbc29e2abfd3e7452dff28';
 
 // Shopify Product Types
 export interface ShopifyProduct {
@@ -52,34 +50,34 @@ export interface ShopifyProduct {
   };
 }
 
-// Storefront API helper function
+// Secure Storefront API helper function via edge function
 export async function storefrontApiRequest(query: string, variables: Record<string, unknown> = {}) {
-  const response = await fetch(SHOPIFY_STOREFRONT_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Shopify-Storefront-Access-Token': SHOPIFY_STOREFRONT_TOKEN
-    },
-    body: JSON.stringify({
-      query,
-      variables,
-    }),
+  const { data, error } = await supabase.functions.invoke('shopify-storefront', {
+    body: { query, variables },
   });
 
-  if (response.status === 402) {
-    toast.error("Shopify: Payment required", {
-      description: "Shopify API access requires an active Shopify billing plan. Visit https://admin.shopify.com to upgrade.",
-    });
-    return null;
+  if (error) {
+    console.error('Shopify API error:', error);
+    if (error.message?.includes('402') || error.message?.includes('Payment required')) {
+      toast.error("Shopify: Payment required", {
+        description: "Shopify API access requires an active Shopify billing plan.",
+      });
+      return null;
+    }
+    throw new Error(`Error calling Shopify: ${error.message}`);
   }
 
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+  if (data?.error) {
+    if (data.error.includes('402') || data.error.includes('Payment required')) {
+      toast.error("Shopify: Payment required", {
+        description: "Shopify API access requires an active Shopify billing plan.",
+      });
+      return null;
+    }
+    throw new Error(data.error);
   }
 
-  const data = await response.json();
-  
-  if (data.errors) {
+  if (data?.errors) {
     throw new Error(`Error calling Shopify: ${data.errors.map((e: { message: string }) => e.message).join(', ')}`);
   }
 
