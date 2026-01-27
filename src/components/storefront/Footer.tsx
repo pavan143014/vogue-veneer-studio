@@ -19,8 +19,8 @@ const Footer = () => {
       { name: "Track Order", href: "/track-order" },
     ],
     company: [
-      { name: "About Us", href: "#about" },
-      { name: "Our Artisans", href: "#artisans" },
+      { name: "About Us", href: "/about" },
+      { name: "Our Artisans", href: "/about#artisans" },
       { name: "Sustainability", href: "#sustainability" },
       { name: "Careers", href: "#careers" },
       { name: "Press", href: "#press" },
@@ -157,9 +157,15 @@ const Footer = () => {
             <ul className="space-y-3">
               {footerLinks.company.map((link) => (
                 <li key={link.name}>
-                  <a href={link.href} className="font-body text-sm opacity-70 hover:opacity-100 hover:text-accent transition-all">
-                    {link.name}
-                  </a>
+                  {link.href.startsWith('/') ? (
+                    <Link to={link.href} className="font-body text-sm opacity-70 hover:opacity-100 hover:text-accent transition-all">
+                      {link.name}
+                    </Link>
+                  ) : (
+                    <a href={link.href} className="font-body text-sm opacity-70 hover:opacity-100 hover:text-accent transition-all">
+                      {link.name}
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>
