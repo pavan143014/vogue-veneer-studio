@@ -1,13 +1,27 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Star, Sparkles } from "lucide-react";
 import heroModel from "@/assets/hero-model.jpg";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef } from "react";
 
 const Hero = () => {
+  const heroRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"],
+  });
+
+  // Parallax transforms
+  const backgroundY = useTransform(scrollYProgress, [0, 1], [0, 150]);
+  const imageY = useTransform(scrollYProgress, [0, 1], [0, 100]);
+  const contentY = useTransform(scrollYProgress, [0, 1], [0, 50]);
+  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0.3]);
+  const scale = useTransform(scrollYProgress, [0, 0.5], [1, 1.1]);
+
   return (
-    <section className="relative min-h-[85vh] md:min-h-[90vh] flex items-center overflow-hidden gradient-hero">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden">
+    <section ref={heroRef} className="relative min-h-[85vh] md:min-h-[90vh] flex items-center overflow-hidden gradient-hero">
+      {/* Animated background elements with parallax */}
+      <motion.div className="absolute inset-0 overflow-hidden" style={{ y: backgroundY }}>
         <motion.div 
           className="absolute top-20 right-10 w-72 h-72 bg-coral/20 rounded-full blur-3xl"
           animate={{ 
@@ -35,7 +49,7 @@ const Hero = () => {
           }}
           transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 2 }}
         />
-      </div>
+      </motion.div>
       
       {/* Decorative pattern overlay */}
       <div className="absolute inset-0 opacity-5">
@@ -53,7 +67,7 @@ const Hero = () => {
         transition={{ duration: 1, ease: "easeOut" }}
       />
 
-      <div className="container mx-auto px-4 relative z-10">
+      <motion.div className="container mx-auto px-4 relative z-10" style={{ y: contentY, opacity }}>
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Content */}
           <div className="text-center lg:text-left space-y-8">
@@ -172,12 +186,13 @@ const Hero = () => {
             </motion.div>
           </div>
 
-          {/* Hero Image */}
+          {/* Hero Image with Parallax */}
           <motion.div 
             className="relative hidden lg:block"
             initial={{ opacity: 0, scale: 0.9, x: 50 }}
             animate={{ opacity: 1, scale: 1, x: 0 }}
             transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
+            style={{ y: imageY }}
           >
             <div className="relative">
               {/* Main image container */}
@@ -185,6 +200,7 @@ const Hero = () => {
                 className="relative aspect-[3/4] max-w-lg mx-auto rounded-t-[200px] overflow-hidden shadow-2xl glow-coral"
                 whileHover={{ scale: 1.02 }}
                 transition={{ type: "spring", stiffness: 300 }}
+                style={{ scale }}
               >
                 <img 
                   src={heroModel} 
@@ -238,7 +254,7 @@ const Hero = () => {
             </div>
           </motion.div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Bottom trust bar */}
       <motion.div 
