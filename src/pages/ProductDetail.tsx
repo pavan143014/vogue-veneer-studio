@@ -7,6 +7,7 @@ import { useCart } from "@/contexts/CartContext";
 import Header from "@/components/storefront/Header";
 import Footer from "@/components/storefront/Footer";
 import ProductCard from "@/components/storefront/ProductCard";
+import { toast } from "sonner";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -14,9 +15,12 @@ const ProductDetail = () => {
   const { addToCart } = useCart();
   
   const [selectedSize, setSelectedSize] = useState<string>("");
+  const [selectedColor, setSelectedColor] = useState<string>(product?.colors[0]?.name || "");
+  const [selectedImage, setSelectedImage] = useState<string>(product?.image || "");
   const [isLiked, setIsLiked] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [showSizeError, setShowSizeError] = useState(false);
+  const [showColorError, setShowColorError] = useState(false);
 
   if (!product) {
     return (
@@ -43,21 +47,43 @@ const ProductDetail = () => {
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0;
 
+  const handleColorSelect = (colorName: string, colorImage: string) => {
+    setSelectedColor(colorName);
+    setSelectedImage(colorImage);
+    setShowColorError(false);
+  };
+
   const handleAddToCart = () => {
+    let hasError = false;
+    
     if (!selectedSize) {
       setShowSizeError(true);
-      return;
+      hasError = true;
     }
+    if (!selectedColor) {
+      setShowColorError(true);
+      hasError = true;
+    }
+    
+    if (hasError) return;
+    
     setShowSizeError(false);
+    setShowColorError(false);
+    
     addToCart({
       id: product.id,
       name: product.name,
       price: product.price,
       originalPrice: product.originalPrice,
-      image: product.image,
+      image: selectedImage,
       size: selectedSize,
+      color: selectedColor,
       quantity: quantity,
       category: product.category,
+    });
+    
+    toast.success("Added to cart!", {
+      description: `${product.name} (${selectedColor}, ${selectedSize}) x ${quantity}`,
     });
   };
 
@@ -90,9 +116,9 @@ const ProductDetail = () => {
           <div className="relative">
             <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-muted">
               <img
-                src={product.image}
+                src={selectedImage}
                 alt={product.name}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-all duration-300"
               />
             </div>
             
@@ -120,6 +146,29 @@ const ProductDetail = () => {
                 className={isLiked ? "fill-primary text-primary" : "text-foreground"}
               />
             </button>
+            
+            {/* Color Thumbnails */}
+            {product.colors.length > 1 && (
+              <div className="flex gap-2 mt-4 justify-center">
+                {product.colors.map((color) => (
+                  <button
+                    key={color.name}
+                    onClick={() => handleColorSelect(color.name, color.image)}
+                    className={`w-16 h-20 rounded-lg overflow-hidden border-2 transition-all ${
+                      selectedColor === color.name
+                        ? "border-primary ring-2 ring-primary/20"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <img
+                      src={color.image}
+                      alt={color.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Product Info */}
@@ -167,6 +216,46 @@ const ProductDetail = () => {
               {product.description}
             </p>
 
+            {/* Color Selection */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <label className="font-body text-sm font-medium text-foreground">
+                  Select Color: <span className="text-primary">{selectedColor}</span>
+                </label>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                {product.colors.map((color) => (
+                  <button
+                    key={color.name}
+                    onClick={() => handleColorSelect(color.name, color.image)}
+                    className={`group relative w-10 h-10 rounded-full transition-all ${
+                      selectedColor === color.name
+                        ? "ring-2 ring-primary ring-offset-2"
+                        : "hover:ring-2 hover:ring-primary/50 hover:ring-offset-1"
+                    }`}
+                    style={{ backgroundColor: color.hex }}
+                    title={color.name}
+                  >
+                    {selectedColor === color.name && (
+                      <Check 
+                        size={16} 
+                        className={`absolute inset-0 m-auto ${
+                          color.hex === "#FFFFFF" || color.hex === "#FBD5E0" || color.hex === "#E8DCC4" || color.hex === "#E6E6FA" || color.hex === "#FFDAB9" || color.hex === "#B0E0E6" || color.hex === "#98FF98" || color.hex === "#87CEEB" || color.hex === "#98FB98" || color.hex === "#F8B4C4" || color.hex === "#F4B4C4"
+                            ? "text-foreground" 
+                            : "text-white"
+                        }`}
+                      />
+                    )}
+                  </button>
+                ))}
+              </div>
+              {showColorError && (
+                <p className="font-body text-sm text-destructive mt-2">
+                  Please select a color
+                </p>
+              )}
+            </div>
+
             {/* Size Selection */}
             <div>
               <div className="flex items-center justify-between mb-3">
@@ -185,7 +274,7 @@ const ProductDetail = () => {
                       setSelectedSize(size);
                       setShowSizeError(false);
                     }}
-                    className={`w-12 h-12 rounded-lg font-body text-sm font-medium transition-all ${
+                    className={`min-w-[48px] h-12 px-3 rounded-lg font-body text-sm font-medium transition-all ${
                       selectedSize === size
                         ? "bg-primary text-primary-foreground"
                         : "bg-muted text-foreground hover:border-primary border-2 border-transparent"
@@ -210,14 +299,14 @@ const ProductDetail = () => {
               <div className="flex items-center gap-3 bg-muted rounded-lg w-fit">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="p-3 hover:bg-background rounded-l-lg transition-colors"
+                  className="p-3 hover:bg-background rounded-l-lg transition-colors font-body text-lg"
                 >
-                  -
+                  −
                 </button>
                 <span className="font-body text-base w-8 text-center">{quantity}</span>
                 <button
                   onClick={() => setQuantity(quantity + 1)}
-                  className="p-3 hover:bg-background rounded-r-lg transition-colors"
+                  className="p-3 hover:bg-background rounded-r-lg transition-colors font-body text-lg"
                 >
                   +
                 </button>
@@ -232,12 +321,12 @@ const ProductDetail = () => {
                 onClick={handleAddToCart}
               >
                 <ShoppingBag size={18} className="mr-2" />
-                Add to Cart
+                Add to Cart — ₹{(product.price * quantity).toLocaleString()}
               </Button>
               <Button
                 size="lg"
                 variant="outline"
-                className="h-14 border-primary text-primary hover:bg-primary hover:text-primary-foreground font-body text-sm"
+                className="h-14 border-primary text-primary hover:bg-primary hover:text-primary-foreground font-body text-sm px-6"
               >
                 Buy Now
               </Button>
@@ -309,17 +398,17 @@ const ProductDetail = () => {
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
               {relatedProducts.map((relatedProduct) => (
-                <Link key={relatedProduct.id} to={`/product/${relatedProduct.id}`}>
-                  <ProductCard
-                    name={relatedProduct.name}
-                    price={relatedProduct.price}
-                    originalPrice={relatedProduct.originalPrice}
-                    image={relatedProduct.image}
-                    category={relatedProduct.category}
-                    isNew={relatedProduct.isNew}
-                    isSale={relatedProduct.isSale}
-                  />
-                </Link>
+                <ProductCard
+                  key={relatedProduct.id}
+                  id={relatedProduct.id}
+                  name={relatedProduct.name}
+                  price={relatedProduct.price}
+                  originalPrice={relatedProduct.originalPrice}
+                  image={relatedProduct.image}
+                  category={relatedProduct.category}
+                  isNew={relatedProduct.isNew}
+                  isSale={relatedProduct.isSale}
+                />
               ))}
             </div>
           </section>
