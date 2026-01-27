@@ -1,16 +1,19 @@
 import { useState } from "react";
 import { Search, ShoppingBag, Heart, Menu, X, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useCart } from "@/contexts/CartContext";
+import { Link } from "react-router-dom";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { totalItems, setIsCartOpen } = useCart();
 
   const navLinks = [
-    { name: "New Arrivals", href: "#new" },
-    { name: "Kurthis", href: "#kurthis" },
-    { name: "Dresses", href: "#dresses" },
-    { name: "Collections", href: "#collections" },
-    { name: "Sale", href: "#sale" },
+    { name: "New Arrivals", href: "/#new" },
+    { name: "Kurthis", href: "/#kurthis" },
+    { name: "Dresses", href: "/#dresses" },
+    { name: "Collections", href: "/#collections" },
+    { name: "Sale", href: "/#sale" },
   ];
 
   return (
@@ -34,12 +37,12 @@ const Header = () => {
 
           {/* Logo */}
           <div className="flex-1 md:flex-none text-center md:text-left">
-            <a href="/" className="inline-block">
+            <Link to="/" className="inline-block">
               <h1 className="font-display text-2xl md:text-3xl font-semibold text-foreground tracking-wide">
                 <span className="text-primary">Aroma</span>
                 <span className="text-accent"> Ethnic</span>
               </h1>
-            </a>
+            </Link>
           </div>
 
           {/* Desktop Navigation */}
@@ -67,11 +70,18 @@ const Header = () => {
             <Button variant="ghost" size="icon">
               <Heart size={20} />
             </Button>
-            <Button variant="ghost" size="icon" className="relative">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="relative"
+              onClick={() => setIsCartOpen(true)}
+            >
               <ShoppingBag size={20} />
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center">
-                0
-              </span>
+              {totalItems > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center">
+                  {totalItems}
+                </span>
+              )}
             </Button>
           </div>
         </div>

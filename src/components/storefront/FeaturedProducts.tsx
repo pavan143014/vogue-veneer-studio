@@ -1,79 +1,9 @@
 import ProductCard from "./ProductCard";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
-
-// Import product images
-import anarkaliKurthi from "@/assets/products/anarkali-kurthi.jpg";
-import cottonDress from "@/assets/products/cotton-dress.jpg";
-import silkKurthi from "@/assets/products/silk-kurthi.jpg";
-import chikankariKurthi from "@/assets/products/chikankari-kurthi.jpg";
-import georgetteDress from "@/assets/products/georgette-dress.jpg";
-import blockPrintKurthi from "@/assets/products/block-print-kurthi.jpg";
-import mirrorWorkDress from "@/assets/products/mirror-work-dress.jpg";
-import rayonKurthi from "@/assets/products/rayon-kurthi.jpg";
+import { products } from "@/data/products";
 
 const FeaturedProducts = () => {
-  const products = [
-    {
-      name: "Embroidered Anarkali Kurthi",
-      price: 1499,
-      originalPrice: 2499,
-      image: anarkaliKurthi,
-      category: "Kurthis",
-      isNew: true,
-      isSale: true,
-    },
-    {
-      name: "Cotton Printed A-Line Dress",
-      price: 1299,
-      image: cottonDress,
-      category: "Dresses",
-      isNew: true,
-    },
-    {
-      name: "Silk Blend Festive Kurthi",
-      price: 2199,
-      originalPrice: 2999,
-      image: silkKurthi,
-      category: "Festive",
-      isSale: true,
-    },
-    {
-      name: "Casual Chikankari Kurthi",
-      price: 999,
-      image: chikankariKurthi,
-      category: "Kurthis",
-    },
-    {
-      name: "Georgette Floor Length Dress",
-      price: 2499,
-      image: georgetteDress,
-      category: "Dresses",
-      isNew: true,
-    },
-    {
-      name: "Block Print Cotton Kurthi",
-      price: 899,
-      originalPrice: 1299,
-      image: blockPrintKurthi,
-      category: "Casual",
-      isSale: true,
-    },
-    {
-      name: "Mirror Work Party Dress",
-      price: 3299,
-      image: mirrorWorkDress,
-      category: "Festive",
-      isNew: true,
-    },
-    {
-      name: "Rayon Daily Wear Kurthi",
-      price: 699,
-      image: rayonKurthi,
-      category: "Casual",
-    },
-  ];
-
   return (
     <section className="py-16 md:py-24 bg-muted/30" id="new">
       <div className="container mx-auto px-4">
@@ -100,11 +30,20 @@ const FeaturedProducts = () => {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
           {products.map((product, index) => (
             <div
-              key={index}
+              key={product.id}
               className="animate-fade-in"
               style={{ animationDelay: `${index * 0.05}s` }}
             >
-              <ProductCard {...product} />
+              <ProductCard
+                id={product.id}
+                name={product.name}
+                price={product.price}
+                originalPrice={product.originalPrice}
+                image={product.image}
+                category={product.category}
+                isNew={product.isNew}
+                isSale={product.isSale}
+              />
             </div>
           ))}
         </div>
