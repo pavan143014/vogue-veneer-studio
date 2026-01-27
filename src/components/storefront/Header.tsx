@@ -1,21 +1,16 @@
 import { useState } from "react";
-import { Search, ShoppingBag, Heart, Menu, X, User } from "lucide-react";
+import { Search, ShoppingBag, Heart, Menu, X, User, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { Link } from "react-router-dom";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { categories } from "@/data/categories";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [mobileExpandedCategory, setMobileExpandedCategory] = useState<string | null>(null);
   const { totalItems, setIsCartOpen } = useCart();
-
-  const navLinks = [
-    { name: "New Arrivals", href: "/#new" },
-    { name: "Kurthis", href: "/#kurthis" },
-    { name: "Dresses", href: "/#dresses" },
-    { name: "Collections", href: "/#collections" },
-    { name: "Sale", href: "/#sale" },
-  ];
 
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
@@ -46,20 +41,6 @@ const Header = () => {
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8 flex-1 justify-center">
-            {navLinks.map((link) => (
-              <a
-                key={link.name}
-                href={link.href}
-                className="font-body text-sm font-medium text-foreground hover:text-primary transition-colors relative group"
-              >
-                {link.name}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full" />
-              </a>
-            ))}
-          </nav>
-
           {/* Icons */}
           <div className="flex items-center gap-1 md:gap-2">
             <Button variant="ghost" size="icon" className="hidden md:flex">
@@ -87,24 +68,91 @@ const Header = () => {
             </Button>
           </div>
         </div>
+
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center justify-center gap-1 py-2 border-t border-border/50">
+          {categories.map((category) => (
+            <div
+              key={category.name}
+              className="relative group"
+              onMouseEnter={() => setActiveCategory(category.name)}
+              onMouseLeave={() => setActiveCategory(null)}
+            >
+              <Link
+                to={category.href}
+                className="flex items-center gap-1 px-4 py-2 font-body text-sm font-medium text-foreground hover:text-primary transition-colors"
+              >
+                {category.name}
+                <ChevronDown size={14} className="transition-transform group-hover:rotate-180" />
+              </Link>
+
+              {/* Dropdown */}
+              {activeCategory === category.name && (
+                <div className="absolute top-full left-0 w-56 bg-background border border-border rounded-lg shadow-xl py-2 animate-fade-in z-50">
+                  {category.subcategories.map((sub) => (
+                    <Link
+                      key={sub.name}
+                      to={sub.href}
+                      className="block px-4 py-2 font-body text-sm text-muted-foreground hover:text-primary hover:bg-muted transition-colors"
+                    >
+                      {sub.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </nav>
       </div>
 
       {/* Mobile Navigation */}
       {isMenuOpen && (
-        <div className="md:hidden bg-background border-t border-border animate-fade-in">
-          <nav className="container mx-auto px-4 py-4 flex flex-col gap-4">
-            {navLinks.map((link, index) => (
-              <a
-                key={link.name}
-                href={link.href}
-                className="font-body text-base font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-border/50"
-                style={{ animationDelay: `${index * 0.1}s` }}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {link.name}
-              </a>
+        <div className="md:hidden bg-background border-t border-border animate-fade-in max-h-[70vh] overflow-y-auto">
+          <nav className="container mx-auto px-4 py-4">
+            {categories.map((category) => (
+              <div key={category.name} className="border-b border-border/50">
+                <button
+                  onClick={() => 
+                    setMobileExpandedCategory(
+                      mobileExpandedCategory === category.name ? null : category.name
+                    )
+                  }
+                  className="flex items-center justify-between w-full py-3 font-body text-base font-medium text-foreground"
+                >
+                  {category.name}
+                  <ChevronDown 
+                    size={18} 
+                    className={`transition-transform ${
+                      mobileExpandedCategory === category.name ? "rotate-180" : ""
+                    }`} 
+                  />
+                </button>
+                
+                {mobileExpandedCategory === category.name && (
+                  <div className="pb-3 pl-4 space-y-2 animate-fade-in">
+                    <Link
+                      to={category.href}
+                      onClick={() => setIsMenuOpen(false)}
+                      className="block py-1 font-body text-sm text-primary font-medium"
+                    >
+                      View All {category.name}
+                    </Link>
+                    {category.subcategories.map((sub) => (
+                      <Link
+                        key={sub.name}
+                        to={sub.href}
+                        onClick={() => setIsMenuOpen(false)}
+                        className="block py-1 font-body text-sm text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        {sub.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))}
-            <div className="flex items-center gap-4 pt-2">
+            
+            <div className="flex items-center gap-4 pt-4 mt-2">
               <Button variant="outline" size="sm" className="flex-1">
                 <Search size={16} className="mr-2" />
                 Search
