@@ -1,5 +1,6 @@
 import { Heart, ShoppingBag, Star, Eye, Check, Zap, Minus, Plus, AlertCircle } from "lucide-react";
 import { useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useCartStore, ShopifyProduct } from "@/stores/cartStore";
 import { useWishlistStore } from "@/stores/wishlistStore";
@@ -225,17 +226,31 @@ const ShopifyProductCard = ({ product }: ShopifyProductCardProps) => {
       >
         {/* Image Container */}
         <div className="relative aspect-[3/4] bg-gradient-to-br from-muted to-ivory-dark overflow-hidden">
-          {displayImageUrl ? (
-            <img 
-              src={displayImageUrl} 
-              alt={node.title}
-              className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-gradient-to-br from-coral/10 to-gold/10">
-              <ShoppingBag size={48} className="text-muted-foreground/50" />
-            </div>
-          )}
+          <AnimatePresence mode="wait">
+            {displayImageUrl ? (
+              <motion.img 
+                key={displayImageUrl}
+                src={displayImageUrl} 
+                alt={node.title}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+              />
+            ) : (
+              <motion.div 
+                key="placeholder"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="w-full h-full flex items-center justify-center text-muted-foreground bg-gradient-to-br from-coral/10 to-gold/10"
+              >
+                <ShoppingBag size={48} className="text-muted-foreground/50" />
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Gradient overlay on hover */}
           <div className={`absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`} />
