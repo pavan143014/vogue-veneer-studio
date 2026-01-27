@@ -246,28 +246,12 @@ const ShopifyProductCard = ({ product }: ShopifyProductCardProps) => {
           <h3 className="font-display text-lg font-semibold text-foreground line-clamp-1 mb-2 group-hover:text-primary transition-colors">
             {node.title}
           </h3>
-          <div className="flex items-center justify-between gap-2 mb-3">
-            <div className="flex items-center gap-2">
-              <span className="font-body font-bold text-lg text-foreground">
-                {currencyCode} {price.toFixed(2)}
-              </span>
-              <span className="font-body text-sm text-muted-foreground line-through">
-                {currencyCode} {(price * 1.3).toFixed(2)}
-              </span>
-            </div>
-            <span className="text-xs font-medium text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400 px-2 py-0.5 rounded-full">
-              23% OFF
-            </span>
-          </div>
 
-          {/* Variant Selectors */}
+          {/* Variant Selectors - Below Title */}
           {productOptions.length > 0 && (
-            <div className="space-y-3 mb-4">
+            <div className="space-y-2 mb-3">
               {productOptions.map((option) => (
                 <div key={option.name} onClick={(e) => e.stopPropagation()}>
-                  <p className="text-xs font-medium text-muted-foreground mb-1.5">
-                    {option.name}: <span className="text-foreground">{selectedOptions[option.name]}</span>
-                  </p>
                   <div className="flex flex-wrap gap-1.5">
                     {isColorOption(option.name) ? (
                       // Color swatches
@@ -276,16 +260,16 @@ const ShopifyProductCard = ({ product }: ShopifyProductCardProps) => {
                           key={value}
                           onClick={(e) => handleOptionSelect(option.name, value, e)}
                           className={cn(
-                            "w-7 h-7 rounded-full transition-all duration-200 flex items-center justify-center",
+                            "w-6 h-6 rounded-full transition-all duration-200 flex items-center justify-center",
                             getColorClass(value),
                             selectedOptions[option.name] === value
-                              ? "ring-2 ring-primary ring-offset-2 ring-offset-background scale-110"
-                              : "hover:scale-105 opacity-80 hover:opacity-100"
+                              ? "ring-2 ring-primary ring-offset-1 ring-offset-background scale-110"
+                              : "hover:scale-105 opacity-70 hover:opacity-100"
                           )}
                           title={value}
                         >
                           {selectedOptions[option.name] === value && (
-                            <Check size={14} className={cn(
+                            <Check size={12} className={cn(
                               "text-white",
                               value.toLowerCase() === "white" || value.toLowerCase() === "cream" || value.toLowerCase() === "ivory" 
                                 ? "text-gray-800" 
@@ -301,7 +285,7 @@ const ShopifyProductCard = ({ product }: ShopifyProductCardProps) => {
                           key={value}
                           onClick={(e) => handleOptionSelect(option.name, value, e)}
                           className={cn(
-                            "px-2.5 py-1 text-xs font-medium rounded-md transition-all duration-200",
+                            "px-2 py-0.5 text-[10px] font-medium rounded transition-all duration-200",
                             selectedOptions[option.name] === value
                               ? "bg-primary text-primary-foreground shadow-sm"
                               : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
@@ -316,6 +300,20 @@ const ShopifyProductCard = ({ product }: ShopifyProductCardProps) => {
               ))}
             </div>
           )}
+
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <div className="flex items-center gap-2">
+              <span className="font-body font-bold text-lg text-foreground">
+                {currencyCode} {price.toFixed(2)}
+              </span>
+              <span className="font-body text-sm text-muted-foreground line-through">
+                {currencyCode} {(price * 1.3).toFixed(2)}
+              </span>
+            </div>
+            <span className="text-xs font-medium text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400 px-2 py-0.5 rounded-full">
+              23% OFF
+            </span>
+          </div>
           
           {/* Action Buttons */}
           <div className="flex gap-2">
