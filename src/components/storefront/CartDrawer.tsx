@@ -1,4 +1,5 @@
 import { X, Plus, Minus, ShoppingBag } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useCart } from "@/contexts/CartContext";
@@ -100,9 +101,11 @@ const CartDrawer = () => {
               <p className="font-body text-xs text-muted-foreground">
                 Shipping and taxes calculated at checkout
               </p>
-              <Button className="w-full bg-primary hover:bg-primary/90 font-body text-sm h-12">
-                Proceed to Checkout
-              </Button>
+              <Link to="/checkout" onClick={() => setIsCartOpen(false)}>
+                <Button className="w-full bg-primary hover:bg-primary/90 font-body text-sm h-12">
+                  Proceed to Checkout
+                </Button>
+              </Link>
               <Button
                 variant="outline"
                 className="w-full font-body text-sm"
