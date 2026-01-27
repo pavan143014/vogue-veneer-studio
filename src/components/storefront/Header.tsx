@@ -21,6 +21,18 @@ const promoMessages = [
   { icon: Percent, text: "🔥 Use Code: ETHNIC30 for 30% Off 🔥" },
 ];
 
+// Category images for mega menu
+const categoryImages: Record<string, string> = {
+  "Sarees": "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=300&h=200&fit=crop",
+  "Kurtis": "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=300&h=200&fit=crop",
+  "Tops": "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=300&h=200&fit=crop",
+  "Bottomwear": "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=300&h=200&fit=crop",
+  "Blouses": "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=300&h=200&fit=crop",
+  "Lehengas": "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=300&h=200&fit=crop",
+  "Nightwear": "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=300&h=200&fit=crop",
+  "Wedding Collection": "https://images.unsplash.com/photo-1519657337289-077653f724ed?w=300&h=200&fit=crop",
+};
+
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -29,6 +41,7 @@ const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
   const { totalItems, setCartOpen } = useCartStore();
   const itemCount = totalItems();
   const navigate = useNavigate();
@@ -152,13 +165,135 @@ const Header = () => {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
+              className="relative"
+              onMouseEnter={() => setIsMegaMenuOpen(true)}
+              onMouseLeave={() => setIsMegaMenuOpen(false)}
             >
               <Link
                 to="/shop"
                 className="flex items-center gap-1 px-4 py-2.5 font-body text-sm font-medium text-foreground hover:text-primary transition-all duration-300 rounded-xl hover:bg-gradient-to-r hover:from-primary/10 hover:to-gold/10"
               >
                 Shop All
+                <motion.div
+                  animate={{ rotate: isMegaMenuOpen ? 180 : 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <ChevronDown size={14} />
+                </motion.div>
               </Link>
+              
+              {/* Mega Menu Dropdown */}
+              <AnimatePresence>
+                {isMegaMenuOpen && (
+                  <motion.div
+                    className="absolute top-full left-0 w-[800px] bg-card/98 backdrop-blur-2xl border border-border/50 rounded-2xl shadow-2xl p-6 z-50 overflow-hidden"
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    transition={{ duration: 0.25 }}
+                  >
+                    {/* Background gradient */}
+                    <motion.div 
+                      className="absolute inset-0 bg-gradient-to-br from-coral/5 via-transparent to-gold/5 pointer-events-none"
+                      animate={{ opacity: [0.3, 0.5, 0.3] }}
+                      transition={{ duration: 4, repeat: Infinity }}
+                    />
+                    
+                    {/* Header */}
+                    <div className="relative mb-4 flex items-center justify-between">
+                      <h3 className="font-display text-lg font-semibold text-foreground">
+                        Browse Categories
+                      </h3>
+                      <Link 
+                        to="/shop" 
+                        className="text-sm font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
+                      >
+                        View All Products
+                        <ChevronDown size={14} className="-rotate-90" />
+                      </Link>
+                    </div>
+                    
+                    {/* Categories Grid */}
+                    <div className="relative grid grid-cols-4 gap-4">
+                      {categories.map((category, index) => (
+                        <motion.div
+                          key={category.name}
+                          initial={{ opacity: 0, y: 15 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.05, duration: 0.3 }}
+                        >
+                          <Link
+                            to={category.href}
+                            className="group block relative overflow-hidden rounded-xl border border-border/30 hover:border-primary/50 transition-all duration-300 hover:shadow-lg"
+                          >
+                            {/* Category Image */}
+                            <div className="relative h-28 overflow-hidden">
+                              <img
+                                src={categoryImages[category.name] || "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=300&h=200&fit=crop"}
+                                alt={category.name}
+                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                              <div className="absolute bottom-2 left-3 right-3">
+                                <h4 className="font-body text-sm font-semibold text-white truncate">
+                                  {category.name}
+                                </h4>
+                                <p className="text-[10px] text-white/80">
+                                  {category.subcategories.length} subcategories
+                                </p>
+                              </div>
+                            </div>
+                            
+                            {/* Subcategories Preview */}
+                            <div className="p-2.5 bg-muted/30">
+                              <div className="flex flex-wrap gap-1">
+                                {category.subcategories.slice(0, 3).map((sub) => (
+                                  <span 
+                                    key={sub.name}
+                                    className="text-[10px] px-2 py-0.5 bg-background rounded-full text-muted-foreground"
+                                  >
+                                    {sub.name.split(' ')[0]}
+                                  </span>
+                                ))}
+                                {category.subcategories.length > 3 && (
+                                  <span className="text-[10px] px-2 py-0.5 bg-primary/10 text-primary rounded-full">
+                                    +{category.subcategories.length - 3}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </Link>
+                        </motion.div>
+                      ))}
+                    </div>
+                    
+                    {/* Footer promotional banner */}
+                    <motion.div 
+                      className="relative mt-4 p-4 rounded-xl bg-gradient-to-r from-coral/10 via-gold/10 to-teal/10 border border-coral/20"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.3 }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-body text-sm font-semibold text-foreground">
+                            ✨ New Arrivals Every Week
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Discover the latest ethnic fashion trends
+                          </p>
+                        </div>
+                        <Link
+                          to="/shop?collection=new"
+                          className="px-4 py-2 bg-primary text-primary-foreground text-xs font-medium rounded-lg hover:bg-primary/90 transition-colors"
+                        >
+                          Shop New
+                        </Link>
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
             <motion.div
               initial={{ opacity: 0, y: -10 }}
