@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, ShoppingBag, Menu, X, User, ChevronDown, Sparkles, Gift, Percent, Package, LogIn, UserPlus, HelpCircle } from "lucide-react";
+import { Search, ShoppingBag, Menu, X, User, ChevronDown, Sparkles, Gift, Percent, Package, LogIn, UserPlus, HelpCircle, Heart, Tag, Clock, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/stores/cartStore";
 import { Link, useNavigate } from "react-router-dom";
@@ -409,6 +409,71 @@ const Header = () => {
             </motion.div>
           )}
         </AnimatePresence>
+      </div>
+
+      {/* Sub Header Navigation Menu */}
+      <div className="hidden md:block border-t border-border/30 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <nav className="flex items-center justify-center gap-1">
+            <Link
+              to="/shop"
+              className="flex items-center gap-2 px-4 py-2.5 font-body text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
+            >
+              <Tag size={14} />
+              New Arrivals
+            </Link>
+            <span className="text-border">|</span>
+            <Link
+              to="/shop?collection=bestsellers"
+              className="flex items-center gap-2 px-4 py-2.5 font-body text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
+            >
+              <Heart size={14} />
+              Best Sellers
+            </Link>
+            <span className="text-border">|</span>
+            <Link
+              to="/shop?collection=sale"
+              className="flex items-center gap-2 px-4 py-2.5 font-body text-xs font-medium text-coral hover:text-coral-dark transition-colors"
+            >
+              <Percent size={14} />
+              Sale
+            </Link>
+            <span className="text-border">|</span>
+            {categories.slice(0, 5).map((category, index) => (
+              <div key={category.name} className="flex items-center">
+                <Link
+                  to={category.href}
+                  className="px-4 py-2.5 font-body text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
+                >
+                  {category.name}
+                </Link>
+                {index < 4 && <span className="text-border">|</span>}
+              </div>
+            ))}
+            <span className="text-border">|</span>
+            <Link
+              to="/track-order"
+              className="flex items-center gap-2 px-4 py-2.5 font-body text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
+            >
+              <Truck size={14} />
+              Track Order
+            </Link>
+            <span className="text-border">|</span>
+            <Link
+              to="/about"
+              className="flex items-center gap-2 px-4 py-2.5 font-body text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
+            >
+              About Us
+            </Link>
+            <span className="text-border">|</span>
+            <Link
+              to="/contact"
+              className="flex items-center gap-2 px-4 py-2.5 font-body text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
+            >
+              Contact
+            </Link>
+          </nav>
+        </div>
       </div>
 
       {/* Mobile Navigation */}
