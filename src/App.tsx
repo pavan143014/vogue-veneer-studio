@@ -11,6 +11,7 @@ import Shop from "./pages/Shop";
 import ProductDetail from "./pages/ProductDetail";
 import OrderConfirmation from "./pages/OrderConfirmation";
 import TrackOrder from "./pages/TrackOrder";
+import AboutUs from "./pages/AboutUs";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,7 +32,9 @@ const AppContent = () => {
           <Route path="/product/:handle" element={<ProductDetail />} />
           <Route path="/order-confirmation" element={<OrderConfirmation />} />
           <Route path="/track-order" element={<TrackOrder />} />
+          <Route path="/about" element={<AboutUs />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="*" element={<NotFound />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
