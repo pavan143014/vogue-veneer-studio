@@ -8,6 +8,12 @@ import blockPrintKurthi from "@/assets/products/block-print-kurthi.jpg";
 import mirrorWorkDress from "@/assets/products/mirror-work-dress.jpg";
 import rayonKurthi from "@/assets/products/rayon-kurthi.jpg";
 
+export interface ColorVariant {
+  name: string;
+  hex: string;
+  image: string;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -20,6 +26,7 @@ export interface Product {
   description: string;
   details: string[];
   sizes: string[];
+  colors: ColorVariant[];
   fabric: string;
   careInstructions: string[];
 }
@@ -43,6 +50,12 @@ export const products: Product[] = [
       "Comes with matching dupatta"
     ],
     sizes: ["XS", "S", "M", "L", "XL", "XXL"],
+    colors: [
+      { name: "Rose Pink", hex: "#F4B4C4", image: anarkaliKurthi },
+      { name: "Royal Blue", hex: "#1E40AF", image: anarkaliKurthi },
+      { name: "Emerald Green", hex: "#047857", image: anarkaliKurthi },
+      { name: "Burgundy", hex: "#722F37", image: anarkaliKurthi },
+    ],
     fabric: "Premium Georgette with Net dupatta",
     careInstructions: [
       "Dry clean only",
@@ -66,6 +79,11 @@ export const products: Product[] = [
       "Side pockets for convenience"
     ],
     sizes: ["XS", "S", "M", "L", "XL", "XXL"],
+    colors: [
+      { name: "Burgundy", hex: "#722F37", image: cottonDress },
+      { name: "Navy Blue", hex: "#1E3A5F", image: cottonDress },
+      { name: "Olive Green", hex: "#556B2F", image: cottonDress },
+    ],
     fabric: "100% Premium Cotton",
     careInstructions: [
       "Machine wash cold",
@@ -90,6 +108,12 @@ export const products: Product[] = [
       "Includes coordinated pants"
     ],
     sizes: ["XS", "S", "M", "L", "XL"],
+    colors: [
+      { name: "Rose Pink", hex: "#C9184A", image: silkKurthi },
+      { name: "Gold", hex: "#D4A574", image: silkKurthi },
+      { name: "Teal", hex: "#0D9488", image: silkKurthi },
+      { name: "Purple", hex: "#7C3AED", image: silkKurthi },
+    ],
     fabric: "Silk Blend with Zari work",
     careInstructions: [
       "Dry clean only",
@@ -112,6 +136,12 @@ export const products: Product[] = [
       "Side slits for ease of movement"
     ],
     sizes: ["XS", "S", "M", "L", "XL", "XXL"],
+    colors: [
+      { name: "White", hex: "#FFFFFF", image: chikankariKurthi },
+      { name: "Light Pink", hex: "#FBD5E0", image: chikankariKurthi },
+      { name: "Sky Blue", hex: "#87CEEB", image: chikankariKurthi },
+      { name: "Mint Green", hex: "#98FB98", image: chikankariKurthi },
+    ],
     fabric: "100% Cotton",
     careInstructions: [
       "Hand wash recommended",
@@ -135,6 +165,11 @@ export const products: Product[] = [
       "Fully lined"
     ],
     sizes: ["XS", "S", "M", "L", "XL"],
+    colors: [
+      { name: "Mustard Gold", hex: "#E3A857", image: georgetteDress },
+      { name: "Coral", hex: "#FF6F61", image: georgetteDress },
+      { name: "Sage Green", hex: "#9CAF88", image: georgetteDress },
+    ],
     fabric: "Premium Georgette",
     careInstructions: [
       "Dry clean only",
@@ -159,6 +194,12 @@ export const products: Product[] = [
       "Comes with palazzo pants"
     ],
     sizes: ["S", "M", "L", "XL", "XXL"],
+    colors: [
+      { name: "Beige", hex: "#E8DCC4", image: blockPrintKurthi },
+      { name: "Rust", hex: "#B7410E", image: blockPrintKurthi },
+      { name: "Indigo", hex: "#3F51B5", image: blockPrintKurthi },
+      { name: "Terracotta", hex: "#E2725B", image: blockPrintKurthi },
+    ],
     fabric: "Pure Cotton",
     careInstructions: [
       "Wash separately first time",
@@ -182,6 +223,11 @@ export const products: Product[] = [
       "Tulle underskirt for volume"
     ],
     sizes: ["XS", "S", "M", "L", "XL"],
+    colors: [
+      { name: "Maroon", hex: "#722F37", image: mirrorWorkDress },
+      { name: "Midnight Blue", hex: "#191970", image: mirrorWorkDress },
+      { name: "Black", hex: "#1A1A1A", image: mirrorWorkDress },
+    ],
     fabric: "Net with Satin lining",
     careInstructions: [
       "Professional dry clean only",
@@ -204,6 +250,13 @@ export const products: Product[] = [
       "Curved hem"
     ],
     sizes: ["S", "M", "L", "XL", "XXL", "3XL"],
+    colors: [
+      { name: "Blush Pink", hex: "#F8B4C4", image: rayonKurthi },
+      { name: "Lavender", hex: "#E6E6FA", image: rayonKurthi },
+      { name: "Peach", hex: "#FFDAB9", image: rayonKurthi },
+      { name: "Powder Blue", hex: "#B0E0E6", image: rayonKurthi },
+      { name: "Mint", hex: "#98FF98", image: rayonKurthi },
+    ],
     fabric: "Premium Rayon",
     careInstructions: [
       "Machine wash cold",

@@ -35,7 +35,7 @@ const CartDrawer = () => {
             <div className="flex-1 overflow-y-auto py-4 space-y-4">
               {items.map((item) => (
                 <div
-                  key={`${item.id}-${item.size}`}
+                  key={`${item.id}-${item.size}-${item.color}`}
                   className="flex gap-4 p-4 bg-card rounded-lg border border-border"
                 >
                   <img
@@ -50,11 +50,11 @@ const CartDrawer = () => {
                           {item.name}
                         </h4>
                         <p className="font-body text-xs text-muted-foreground">
-                          Size: {item.size}
+                          Size: {item.size} | Color: {item.color}
                         </p>
                       </div>
                       <button
-                        onClick={() => removeFromCart(item.id, item.size)}
+                        onClick={() => removeFromCart(item.id, item.size, item.color)}
                         className="text-muted-foreground hover:text-destructive transition-colors"
                       >
                         <X size={16} />
@@ -65,14 +65,14 @@ const CartDrawer = () => {
                       {/* Quantity Controls */}
                       <div className="flex items-center gap-2 bg-muted rounded-lg">
                         <button
-                          onClick={() => updateQuantity(item.id, item.size, item.quantity - 1)}
+                          onClick={() => updateQuantity(item.id, item.size, item.color, item.quantity - 1)}
                           className="p-2 hover:bg-background rounded-l-lg transition-colors"
                         >
                           <Minus size={14} />
                         </button>
                         <span className="font-body text-sm w-8 text-center">{item.quantity}</span>
                         <button
-                          onClick={() => updateQuantity(item.id, item.size, item.quantity + 1)}
+                          onClick={() => updateQuantity(item.id, item.size, item.color, item.quantity + 1)}
                           className="p-2 hover:bg-background rounded-r-lg transition-colors"
                         >
                           <Plus size={14} />
