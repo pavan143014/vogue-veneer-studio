@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Heart, ShoppingBag, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ProductCardProps {
+  id?: string;
   name: string;
   price: number;
   originalPrice?: number;
@@ -13,6 +15,7 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ 
+  id,
   name, 
   price, 
   originalPrice, 
@@ -28,7 +31,7 @@ const ProductCard = ({
     ? Math.round(((originalPrice - price) / originalPrice) * 100) 
     : 0;
 
-  return (
+  const CardContent = (
     <div 
       className="group relative bg-card rounded-xl overflow-hidden border border-border hover:border-primary/30 transition-all duration-300 hover:shadow-xl"
       onMouseEnter={() => setIsHovered(true)}
@@ -58,7 +61,11 @@ const ProductCard = ({
 
         {/* Wishlist Button */}
         <button
-          onClick={() => setIsLiked(!isLiked)}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsLiked(!isLiked);
+          }}
           className="absolute top-3 right-3 w-9 h-9 bg-background/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-background transition-colors"
         >
           <Heart 
@@ -76,16 +83,13 @@ const ProductCard = ({
           <Button 
             size="sm" 
             className="flex-1 bg-primary hover:bg-primary/90 font-body text-xs"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
           >
-            <ShoppingBag size={14} className="mr-1" />
-            Add to Cart
-          </Button>
-          <Button 
-            size="sm" 
-            variant="outline" 
-            className="bg-background/80 backdrop-blur-sm border-border hover:bg-background"
-          >
-            <Eye size={14} />
+            <Eye size={14} className="mr-1" />
+            Quick View
           </Button>
         </div>
       </div>
@@ -111,6 +115,12 @@ const ProductCard = ({
       </div>
     </div>
   );
+
+  if (id) {
+    return <Link to={`/product/${id}`}>{CardContent}</Link>;
+  }
+
+  return CardContent;
 };
 
 export default ProductCard;
