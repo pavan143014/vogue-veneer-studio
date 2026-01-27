@@ -142,14 +142,29 @@ const ShopifyProductCard = ({ product }: ShopifyProductCardProps) => {
           <h3 className="font-display text-lg font-semibold text-foreground line-clamp-1 mb-2 group-hover:text-primary transition-colors">
             {node.title}
           </h3>
-          <div className="flex items-center gap-2">
-            <span className="font-body font-bold text-lg text-foreground">
-              {currencyCode} {price.toFixed(2)}
-            </span>
-            <span className="font-body text-sm text-muted-foreground line-through">
-              {currencyCode} {(price * 1.3).toFixed(2)}
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <div className="flex items-center gap-2">
+              <span className="font-body font-bold text-lg text-foreground">
+                {currencyCode} {price.toFixed(2)}
+              </span>
+              <span className="font-body text-sm text-muted-foreground line-through">
+                {currencyCode} {(price * 1.3).toFixed(2)}
+              </span>
+            </div>
+            <span className="text-xs font-medium text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400 px-2 py-0.5 rounded-full">
+              23% OFF
             </span>
           </div>
+          
+          {/* Always Visible Add to Cart Button */}
+          <Button 
+            className="w-full bg-primary hover:bg-primary/90 font-body text-sm font-semibold shadow-md transition-all duration-300 hover:shadow-lg active:scale-[0.98]"
+            onClick={handleAddToCart}
+            disabled={isLoading || !firstVariant?.availableForSale}
+          >
+            <ShoppingBag size={16} className="mr-2" />
+            {isLoading ? "Adding..." : "Add to Cart"}
+          </Button>
         </div>
       </div>
 
