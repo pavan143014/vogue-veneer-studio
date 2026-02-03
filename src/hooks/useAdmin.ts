@@ -49,14 +49,16 @@ export function useAdminData() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     
-    const [settingsRes, menusRes, productsRes, ordersRes, bannersRes, gatewaysRes] = await Promise.all([
+    const [settingsRes, menusRes, productsRes, bannersRes, gatewaysRes] = await Promise.all([
       supabase.from('site_settings').select('*'),
       supabase.from('navigation_menus').select('*'),
       supabase.from('admin_products').select('*').order('created_at', { ascending: false }),
-      supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(50),
       supabase.from('banners').select('*').order('position'),
       supabase.from('payment_gateways').select('*'),
     ]);
+
+    // Fetch orders via edge function (bypasses RLS)
+    const { data: ordersData } = await supabase.functions.invoke('admin-orders');
 
     if (settingsRes.data) {
       const settings: Record<string, any> = {};
@@ -68,7 +70,7 @@ export function useAdminData() {
     
     if (menusRes.data) setMenus(menusRes.data);
     if (productsRes.data) setProducts(productsRes.data);
-    if (ordersRes.data) setOrders(ordersRes.data);
+    if (ordersData?.orders) setOrders(ordersData.orders);
     if (bannersRes.data) setBanners(bannersRes.data);
     if (gatewaysRes.data) setPaymentGateways(gatewaysRes.data);
     
