@@ -234,6 +234,7 @@ const AdminMenus = () => {
                     }
                   : null
               }
+              menuType="header"
               onAddItem={handleAddItem}
               onEditItem={handleEditItem}
               onDeleteItem={handleDeleteItem}
@@ -258,6 +259,7 @@ const AdminMenus = () => {
                     }
                   : null
               }
+              menuType="footer"
               onAddItem={handleAddItem}
               onEditItem={handleEditItem}
               onDeleteItem={handleDeleteItem}
