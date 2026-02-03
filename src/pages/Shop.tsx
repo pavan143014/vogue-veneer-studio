@@ -2,11 +2,11 @@ import { useState, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import Header from "@/components/storefront/Header";
 import Footer from "@/components/storefront/Footer";
-import ShopifyProductCard from "@/components/storefront/ShopifyProductCard";
+import ProductCard from "@/components/storefront/ProductCard";
 import ProductSearch from "@/components/storefront/ProductSearch";
 import ProductFilters, { FilterState } from "@/components/storefront/ProductFilters";
-import { useShopifyProducts, ShopifyProduct } from "@/hooks/useShopifyProducts";
-import { Loader2, ShoppingBag, Sparkles, Grid3X3, LayoutGrid } from "lucide-react";
+import { products } from "@/data/products";
+import { ShoppingBag, Sparkles, Grid3X3, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 
@@ -22,55 +22,47 @@ const Shop = () => {
     sortBy: "relevance",
   });
 
-  // Build Shopify search query
-  const shopifyQuery = useMemo(() => {
-    const queryParts: string[] = [];
-    
-    if (searchQuery) {
-      queryParts.push(`title:*${searchQuery}*`);
-    }
-    
-    if (filters.categories.length > 0) {
-      const categoryQuery = filters.categories.map(cat => `product_type:${cat}`).join(" OR ");
-      queryParts.push(`(${categoryQuery})`);
-    }
-    
-    return queryParts.length > 0 ? queryParts.join(" AND ") : undefined;
-  }, [searchQuery, filters.categories]);
-
-  const { data: products, isLoading, error } = useShopifyProducts(50, shopifyQuery);
-
-  // Filter and sort products client-side
+  // Filter and sort products
   const filteredProducts = useMemo(() => {
-    if (!products) return [];
-    
     let result = [...products];
     
+    // Search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(product => 
+        product.name.toLowerCase().includes(query) ||
+        product.category.toLowerCase().includes(query) ||
+        product.description.toLowerCase().includes(query)
+      );
+    }
+    
+    // Category filter
+    if (filters.categories.length > 0) {
+      result = result.filter(product => 
+        filters.categories.includes(product.category)
+      );
+    }
+    
     // Price filter
-    result = result.filter((product: ShopifyProduct) => {
-      const price = parseFloat(product.node.priceRange.minVariantPrice.amount);
-      return price >= filters.priceRange[0] && price <= filters.priceRange[1];
-    });
+    result = result.filter(product => 
+      product.price >= filters.priceRange[0] && product.price <= filters.priceRange[1]
+    );
     
     // Sort
     switch (filters.sortBy) {
       case "price-low":
-        result.sort((a, b) => 
-          parseFloat(a.node.priceRange.minVariantPrice.amount) - 
-          parseFloat(b.node.priceRange.minVariantPrice.amount)
-        );
+        result.sort((a, b) => a.price - b.price);
         break;
       case "price-high":
-        result.sort((a, b) => 
-          parseFloat(b.node.priceRange.minVariantPrice.amount) - 
-          parseFloat(a.node.priceRange.minVariantPrice.amount)
-        );
+        result.sort((a, b) => b.price - a.price);
         break;
-      // For relevance and newest, keep the original order from Shopify
+      case "newest":
+        result = result.filter(p => p.isNew).concat(result.filter(p => !p.isNew));
+        break;
     }
     
     return result;
-  }, [products, filters]);
+  }, [searchQuery, filters]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -162,15 +154,9 @@ const Shop = () => {
                   transition={{ delay: 0.4 }}
                 >
                   <div className="font-body text-muted-foreground">
-                    {isLoading ? (
-                      "Loading products..."
-                    ) : (
-                      <>
-                        Showing <span className="text-foreground font-medium">{filteredProducts.length}</span> products
-                        {searchQuery && (
-                          <span className="text-foreground"> for "{searchQuery}"</span>
-                        )}
-                      </>
+                    Showing <span className="text-foreground font-medium">{filteredProducts.length}</span> products
+                    {searchQuery && (
+                      <span className="text-foreground"> for "{searchQuery}"</span>
                     )}
                   </div>
                   
@@ -194,36 +180,8 @@ const Shop = () => {
                   </div>
                 </motion.div>
 
-                {/* Loading State */}
-                {isLoading && (
-                  <div className="flex flex-col items-center justify-center py-24">
-                    <div className="relative">
-                      <motion.div 
-                        className="w-16 h-16 rounded-full bg-primary/20 absolute inset-0"
-                        animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
-                        transition={{ duration: 1.5, repeat: Infinity }}
-                      />
-                      <Loader2 className="w-16 h-16 animate-spin text-primary relative z-10" />
-                    </div>
-                    <p className="font-body text-muted-foreground mt-4">Loading products...</p>
-                  </div>
-                )}
-
-                {/* Error State */}
-                {error && (
-                  <motion.div 
-                    className="text-center py-20 bg-destructive/10 rounded-3xl border border-destructive/20"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                  >
-                    <p className="text-destructive font-body text-lg">
-                      Failed to load products. Please try again.
-                    </p>
-                  </motion.div>
-                )}
-
                 {/* Empty State */}
-                {!isLoading && !error && filteredProducts.length === 0 && (
+                {filteredProducts.length === 0 && (
                   <motion.div 
                     className="text-center py-20 bg-card rounded-3xl border-2 border-dashed border-border"
                     initial={{ opacity: 0, y: 20 }}
@@ -258,7 +216,7 @@ const Shop = () => {
                 )}
 
                 {/* Products Grid */}
-                {!isLoading && !error && filteredProducts.length > 0 && (
+                {filteredProducts.length > 0 && (
                   <motion.div 
                     className={`grid gap-4 md:gap-6 ${
                       gridView === "grid" 
@@ -274,9 +232,9 @@ const Shop = () => {
                       }
                     }}
                   >
-                    {filteredProducts.map((product: ShopifyProduct) => (
+                    {filteredProducts.map((product) => (
                       <motion.div
-                        key={product.node.id}
+                        key={product.id}
                         variants={{
                           hidden: { opacity: 0, y: 20, scale: 0.95 },
                           visible: { 
@@ -287,7 +245,16 @@ const Shop = () => {
                           }
                         }}
                       >
-                        <ShopifyProductCard product={product} />
+                        <ProductCard 
+                          id={product.id}
+                          name={product.name}
+                          price={product.price}
+                          originalPrice={product.originalPrice}
+                          image={product.image}
+                          category={product.category}
+                          isNew={product.isNew}
+                          isSale={product.isSale}
+                        />
                       </motion.div>
                     ))}
                   </motion.div>
