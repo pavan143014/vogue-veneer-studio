@@ -284,6 +284,46 @@ const AdminOrders = () => {
                 </div>
               </div>
 
+              {/* Order Items */}
+              {selectedOrder.items && selectedOrder.items.length > 0 && (
+                <div className="p-4 rounded-xl bg-muted/50">
+                  <h4 className="font-body text-sm font-medium text-muted-foreground mb-3">
+                    Order Items
+                  </h4>
+                  <div className="space-y-3">
+                    {selectedOrder.items.map((item: any) => (
+                      <div key={item.id} className="flex items-center gap-3">
+                        {item.image_url && (
+                          <img
+                            src={item.image_url}
+                            alt={item.product_title}
+                            className="w-12 h-12 object-cover rounded-lg"
+                          />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-body text-sm font-medium text-foreground truncate">
+                            {item.product_title}
+                          </p>
+                          {item.variant_title && (
+                            <p className="font-body text-xs text-muted-foreground">
+                              Size: {item.variant_title}
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <p className="font-body text-sm text-foreground">
+                            ₹{item.price?.toLocaleString("en-IN")} × {item.quantity}
+                          </p>
+                          <p className="font-display text-sm font-semibold">
+                            ₹{(item.price * item.quantity)?.toLocaleString("en-IN")}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Order Summary */}
               <div className="p-4 rounded-xl bg-muted/50">
                 <h4 className="font-body text-sm font-medium text-muted-foreground mb-3">
