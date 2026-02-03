@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, ShoppingBag, Menu, X, User, ChevronDown, Sparkles, Gift, Percent, Package, LogIn, UserPlus, HelpCircle, Heart, Tag, Clock, Truck } from "lucide-react";
+import { Search, ShoppingBag, Menu, X, ChevronDown, Sparkles, Gift, Percent, Package, Heart, Tag, Clock, Truck, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/stores/cartStore";
 import { Link, useNavigate } from "react-router-dom";
@@ -7,6 +7,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { categories } from "@/data/categories";
 import { motion, AnimatePresence } from "framer-motion";
 import WishlistDrawer from "./WishlistDrawer";
+import UserMenu from "@/components/auth/UserMenu";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -408,44 +409,7 @@ const Header = () => {
               transition={{ delay: 0.4 }}
               className="hidden md:block"
             >
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="hover:bg-gradient-to-br hover:from-primary/10 hover:to-gold/10 hover:text-primary transition-all duration-300 rounded-xl"
-                  >
-                    <User size={20} />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48 rounded-xl">
-                  <DropdownMenuItem asChild className="cursor-pointer">
-                    <Link to="/contact" className="flex items-center gap-2">
-                      <LogIn size={16} />
-                      Sign In
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer">
-                    <Link to="/contact" className="flex items-center gap-2">
-                      <UserPlus size={16} />
-                      Create Account
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild className="cursor-pointer">
-                    <Link to="/track-order" className="flex items-center gap-2">
-                      <Package size={16} />
-                      Track Order
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer">
-                    <Link to="/contact" className="flex items-center gap-2">
-                      <HelpCircle size={16} />
-                      Help & Support
-                    </Link>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <UserMenu />
             </motion.div>
             
             <motion.div
