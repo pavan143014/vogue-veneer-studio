@@ -93,8 +93,29 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Fetch order items for all orders
+    const orderIds = (orders || []).map((o: any) => o.id);
+    const { data: allItems } = orderIds.length > 0 
+      ? await supabase.from('order_items').select('*').in('order_id', orderIds)
+      : { data: [] };
+
+    // Group items by order_id
+    const itemsByOrder: Record<string, any[]> = {};
+    (allItems || []).forEach((item: any) => {
+      if (!itemsByOrder[item.order_id]) {
+        itemsByOrder[item.order_id] = [];
+      }
+      itemsByOrder[item.order_id].push(item);
+    });
+
+    // Attach items to orders
+    const ordersWithItems = (orders || []).map((order: any) => ({
+      ...order,
+      items: itemsByOrder[order.id] || []
+    }));
+
     return new Response(
-      JSON.stringify({ orders: orders || [] }),
+      JSON.stringify({ orders: ordersWithItems }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error: unknown) {
