@@ -35,7 +35,9 @@ import {
   CheckCircle,
   Clock,
   XCircle,
+  Download,
 } from "lucide-react";
+import { generateOrderPdf } from "@/lib/generateOrderPdf";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -245,10 +247,21 @@ const AdminOrders = () => {
         onOpenChange={(open) => !open && setSelectedOrder(null)}
       >
         <DialogContent className="max-w-2xl">
-          <DialogHeader>
+          <DialogHeader className="flex flex-row items-center justify-between">
             <DialogTitle className="font-display text-xl">
               Order #{selectedOrder?.order_number}
             </DialogTitle>
+            {selectedOrder && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => generateOrderPdf(selectedOrder)}
+                className="flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Export PDF
+              </Button>
+            )}
           </DialogHeader>
           {selectedOrder && (
             <div className="space-y-6 mt-4">
