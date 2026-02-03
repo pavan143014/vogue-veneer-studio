@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAdminData } from "@/hooks/useAdmin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,23 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface MenuItem {
   id: string;
@@ -32,6 +49,74 @@ interface MenuItem {
   children?: MenuItem[];
 }
 
+interface SortableItemProps {
+  item: MenuItem;
+  onEdit: (item: MenuItem) => void;
+  onDelete: (id: string) => void;
+}
+
+const SortableItem = ({ item, onEdit, onDelete }: SortableItemProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <motion.div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center gap-3 p-3 rounded-xl bg-muted/50 group hover:bg-muted transition-colors ${
+        isDragging ? "opacity-50 shadow-lg ring-2 ring-primary/50 z-50" : ""
+      }`}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
+      <button
+        {...attributes}
+        {...listeners}
+        className="touch-none cursor-grab active:cursor-grabbing p-1 rounded hover:bg-accent transition-colors"
+        aria-label="Drag to reorder"
+      >
+        <GripVertical className="h-4 w-4 text-muted-foreground" />
+      </button>
+      <div className="flex-1 min-w-0">
+        <p className="font-body font-medium text-foreground">{item.label}</p>
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          <LinkIcon size={10} />
+          <span className="truncate">{item.href}</span>
+        </div>
+      </div>
+      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => onEdit(item)}
+        >
+          <Edit2 className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-destructive hover:text-destructive"
+          onClick={() => onDelete(item.id)}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
+    </motion.div>
+  );
+};
+
 const AdminMenus = () => {
   const { menus, loading, updateMenu } = useAdminData();
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
@@ -39,6 +124,17 @@ const AdminMenus = () => {
   const [saving, setSaving] = useState(false);
   const [itemForm, setItemForm] = useState({ label: "", href: "" });
   const [activeTab, setActiveTab] = useState("header");
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const headerMenu = menus.find((m) => m.slug === "header");
   const footerMenu = menus.find((m) => m.slug === "footer");
@@ -106,6 +202,28 @@ const AdminMenus = () => {
     setSaving(false);
   };
 
+  const handleDragEnd = async (event: DragEndEvent, menu: any) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id || !menu) return;
+
+    const items = menu.items as MenuItem[];
+    const oldIndex = items.findIndex((item) => item.id === active.id);
+    const newIndex = items.findIndex((item) => item.id === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reorderedItems = arrayMove(items, oldIndex, newIndex);
+
+    // Optimistically update and save
+    const { error } = await updateMenu(menu.id, reorderedItems);
+    if (error) {
+      toast.error("Failed to reorder menu items");
+    } else {
+      toast.success("Menu order updated");
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
@@ -121,7 +239,12 @@ const AdminMenus = () => {
     return (
       <Card className="border-0 shadow-lg">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="font-display text-xl">{menu.name}</CardTitle>
+          <div>
+            <CardTitle className="font-display text-xl">{menu.name}</CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">
+              Drag items to reorder
+            </p>
+          </div>
           <Button size="sm" onClick={handleAddItem} className="gap-2">
             <Plus size={16} />
             Add Item
@@ -139,46 +262,27 @@ const AdminMenus = () => {
               </p>
             </div>
           ) : (
-            <div className="space-y-2">
-              {items.map((item, index) => (
-                <motion.div
-                  key={item.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 group hover:bg-muted transition-colors"
-                >
-                  <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-body font-medium text-foreground">
-                      {item.label}
-                    </p>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <LinkIcon size={10} />
-                      <span className="truncate">{item.href}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => handleEditItem(item)}
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-destructive hover:text-destructive"
-                      onClick={() => handleDeleteItem(item.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={(event) => handleDragEnd(event, menu)}
+            >
+              <SortableContext
+                items={items.map((i) => i.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="space-y-2">
+                  {items.map((item) => (
+                    <SortableItem
+                      key={item.id}
+                      item={item}
+                      onEdit={handleEditItem}
+                      onDelete={handleDeleteItem}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
           )}
         </CardContent>
       </Card>
