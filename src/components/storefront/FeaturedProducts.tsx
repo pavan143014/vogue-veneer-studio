@@ -1,13 +1,11 @@
-import ShopifyProductCard from "./ShopifyProductCard";
+import ProductCard from "./ProductCard";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ShoppingBag, Sparkles } from "lucide-react";
-import { useShopifyProducts } from "@/hooks/useShopifyProducts";
+import { ArrowRight, Sparkles } from "lucide-react";
+import { products } from "@/data/products";
 import { motion } from "framer-motion";
-import { ProductGridSkeleton } from "./ProductCardSkeleton";
+import { Link } from "react-router-dom";
 
 const FeaturedProducts = () => {
-  const { data: products, isLoading, error } = useShopifyProducts(20);
-
   return (
     <section className="py-16 md:py-24 bg-muted/30" id="new">
       <div className="container mx-auto px-4">
@@ -45,85 +43,59 @@ const FeaturedProducts = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.98 }}
           >
-            <Button 
-              variant="ghost" 
-              className="mt-6 md:mt-0 font-body text-sm text-primary hover:text-primary-foreground hover:bg-primary group px-6"
-            >
-              View All Products
-              <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
-            </Button>
+            <Link to="/shop">
+              <Button 
+                variant="ghost" 
+                className="mt-6 md:mt-0 font-body text-sm text-primary hover:text-primary-foreground hover:bg-primary group px-6"
+              >
+                View All Products
+                <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
           </motion.div>
         </motion.div>
 
-        {/* Loading State - Skeleton Grid */}
-        {isLoading && <ProductGridSkeleton count={8} />}
-
-        {/* Error State */}
-        {error && (
-          <motion.div 
-            className="text-center py-20 bg-destructive/10 rounded-3xl border border-destructive/20"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-          >
-            <p className="text-destructive font-body text-lg">Failed to load products. Please try again.</p>
-          </motion.div>
-        )}
-
-        {/* Empty State */}
-        {!isLoading && !error && (!products || products.length === 0) && (
-          <motion.div 
-            className="text-center py-20 bg-card rounded-3xl border-2 border-dashed border-border"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <motion.div 
-              className="w-24 h-24 rounded-full bg-gradient-to-br from-coral/20 to-gold/20 flex items-center justify-center mx-auto mb-6"
-              animate={{ scale: [1, 1.1, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              <ShoppingBag size={40} className="text-primary" />
-            </motion.div>
-            <h3 className="font-display text-3xl font-bold text-foreground mb-3">No products found</h3>
-            <p className="font-body text-muted-foreground max-w-md mx-auto text-lg">
-              Your store doesn't have any products yet. Create your first product by telling me what you'd like to sell!
-            </p>
-          </motion.div>
-        )}
-
         {/* Products Grid */}
-        {products && products.length > 0 && (
-          <motion.div 
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-50px" }}
-            variants={{
-              hidden: {},
-              visible: {
-                transition: {
-                  staggerChildren: 0.08
-                }
+        <motion.div 
+          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+          variants={{
+            hidden: {},
+            visible: {
+              transition: {
+                staggerChildren: 0.08
               }
-            }}
-          >
-            {products.map((product) => (
-              <motion.div
-                key={product.node.id}
-                variants={{
-                  hidden: { opacity: 0, y: 30, scale: 0.95 },
-                  visible: { 
-                    opacity: 1, 
-                    y: 0, 
-                    scale: 1,
-                    transition: { duration: 0.5, ease: "easeOut" }
-                  }
-                }}
-              >
-                <ShopifyProductCard product={product} />
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
+            }
+          }}
+        >
+          {products.slice(0, 8).map((product) => (
+            <motion.div
+              key={product.id}
+              variants={{
+                hidden: { opacity: 0, y: 30, scale: 0.95 },
+                visible: { 
+                  opacity: 1, 
+                  y: 0, 
+                  scale: 1,
+                  transition: { duration: 0.5, ease: "easeOut" }
+                }
+              }}
+            >
+              <ProductCard 
+                id={product.id}
+                name={product.name}
+                price={product.price}
+                originalPrice={product.originalPrice}
+                image={product.image}
+                category={product.category}
+                isNew={product.isNew}
+                isSale={product.isSale}
+              />
+            </motion.div>
+          ))}
+        </motion.div>
 
         {/* Newsletter CTA Banner */}
         <motion.div 
