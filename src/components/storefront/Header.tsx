@@ -1,22 +1,14 @@
 import { useState, useEffect } from "react";
-import { Search, ShoppingBag, Menu, X, ChevronDown, Sparkles, Gift, Percent, Package, Heart, Tag, Clock, Truck, User } from "lucide-react";
+import { Search, ShoppingBag, Menu, X, Sparkles, Gift, Percent, Package, Heart, Tag, Truck, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/stores/cartStore";
 import { Link, useNavigate } from "react-router-dom";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { categories } from "@/data/categories";
 import { motion, AnimatePresence } from "framer-motion";
 import WishlistDrawer from "./WishlistDrawer";
 import UserMenu from "@/components/auth/UserMenu";
 import { DynamicNav } from "./DynamicNav";
 import { useNavigationMenu } from "@/hooks/useNavigationMenu";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 const promoMessages = [
   { icon: Sparkles, text: "✨ Free Shipping on Orders Above ₹999 ✨" },
@@ -24,27 +16,12 @@ const promoMessages = [
   { icon: Percent, text: "🔥 Use Code: ETHNIC30 for 30% Off 🔥" },
 ];
 
-// Category images for mega menu
-const categoryImages: Record<string, string> = {
-  "Sarees": "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=300&h=200&fit=crop",
-  "Kurtis": "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=300&h=200&fit=crop",
-  "Tops": "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=300&h=200&fit=crop",
-  "Bottomwear": "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=300&h=200&fit=crop",
-  "Blouses": "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=300&h=200&fit=crop",
-  "Lehengas": "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=300&h=200&fit=crop",
-  "Nightwear": "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=300&h=200&fit=crop",
-  "Wedding Collection": "https://images.unsplash.com/photo-1519657337289-077653f724ed?w=300&h=200&fit=crop",
-};
-
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  const [mobileExpandedCategory, setMobileExpandedCategory] = useState<string | null>(null);
   const [currentPromo, setCurrentPromo] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
   const { totalItems, setCartOpen } = useCartStore();
   const itemCount = totalItems();
   const navigate = useNavigate();
@@ -181,147 +158,11 @@ const Header = () => {
               </Link>
             </motion.div>
 
-            {/* Categories Dropdown */}
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.05 }}
-              className="relative"
-              onMouseEnter={() => setIsMegaMenuOpen(true)}
-              onMouseLeave={() => setIsMegaMenuOpen(false)}
-            >
-              <button
-                className="flex items-center gap-1 px-4 py-2.5 font-body text-sm font-medium text-foreground hover:text-primary transition-all duration-300 rounded-xl hover:bg-gradient-to-r hover:from-primary/10 hover:to-gold/10"
-              >
-                <Tag size={16} />
-                Categories
-                <motion.div
-                  animate={{ rotate: isMegaMenuOpen ? 180 : 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <ChevronDown size={14} />
-                </motion.div>
-              </button>
-              
-              {/* Mega Menu Dropdown */}
-              <AnimatePresence>
-                {isMegaMenuOpen && (
-                  <motion.div
-                    className="absolute top-full left-0 w-[800px] bg-card/98 backdrop-blur-2xl border border-border/50 rounded-2xl shadow-2xl p-6 z-50 overflow-hidden"
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    transition={{ duration: 0.25 }}
-                  >
-                    {/* Background gradient */}
-                    <motion.div 
-                      className="absolute inset-0 bg-gradient-to-br from-coral/5 via-transparent to-gold/5 pointer-events-none"
-                      animate={{ opacity: [0.3, 0.5, 0.3] }}
-                      transition={{ duration: 4, repeat: Infinity }}
-                    />
-                    
-                    {/* Header */}
-                    <div className="relative mb-4 flex items-center justify-between">
-                      <h3 className="font-display text-lg font-semibold text-foreground">
-                        Browse Categories
-                      </h3>
-                      <Link 
-                        to="/shop" 
-                        className="text-sm font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
-                      >
-                        View All Products
-                        <ChevronDown size={14} className="-rotate-90" />
-                      </Link>
-                    </div>
-                    
-                    {/* Categories Grid */}
-                    <div className="relative grid grid-cols-4 gap-4">
-                      {categories.map((category, index) => (
-                        <motion.div
-                          key={category.name}
-                          initial={{ opacity: 0, y: 15 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.05, duration: 0.3 }}
-                        >
-                          <Link
-                            to={category.href}
-                            className="group block relative overflow-hidden rounded-xl border border-border/30 hover:border-primary/50 transition-all duration-300 hover:shadow-lg"
-                          >
-                            {/* Category Image */}
-                            <div className="relative h-28 overflow-hidden">
-                              <img
-                                src={categoryImages[category.name] || "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=300&h=200&fit=crop"}
-                                alt={category.name}
-                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                              />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                              <div className="absolute bottom-2 left-3 right-3">
-                                <h4 className="font-body text-sm font-semibold text-white truncate">
-                                  {category.name}
-                                </h4>
-                                <p className="text-[10px] text-white/80">
-                                  {category.subcategories.length} subcategories
-                                </p>
-                              </div>
-                            </div>
-                            
-                            {/* Subcategories Preview */}
-                            <div className="p-2.5 bg-muted/30">
-                              <div className="flex flex-wrap gap-1">
-                                {category.subcategories.slice(0, 3).map((sub) => (
-                                  <span 
-                                    key={sub.name}
-                                    className="text-[10px] px-2 py-0.5 bg-background rounded-full text-muted-foreground"
-                                  >
-                                    {sub.name.split(' ')[0]}
-                                  </span>
-                                ))}
-                                {category.subcategories.length > 3 && (
-                                  <span className="text-[10px] px-2 py-0.5 bg-primary/10 text-primary rounded-full">
-                                    +{category.subcategories.length - 3}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </Link>
-                        </motion.div>
-                      ))}
-                    </div>
-                    
-                    {/* Footer promotional banner */}
-                    <motion.div 
-                      className="relative mt-4 p-4 rounded-xl bg-gradient-to-r from-coral/10 via-gold/10 to-teal/10 border border-coral/20"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.3 }}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-body text-sm font-semibold text-foreground">
-                            ✨ New Arrivals Every Week
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            Discover the latest ethnic fashion trends
-                          </p>
-                        </div>
-                        <Link
-                          to="/shop?collection=new"
-                          className="px-4 py-2 bg-primary text-primary-foreground text-xs font-medium rounded-lg hover:bg-primary/90 transition-colors"
-                        >
-                          Shop New
-                        </Link>
-                      </div>
-                    </motion.div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-
             {/* Track Order Link */}
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
+              transition={{ duration: 0.4, delay: 0.05 }}
             >
               <Link
                 to="/track-order"
@@ -331,84 +172,40 @@ const Header = () => {
                 Track Order
               </Link>
             </motion.div>
+
+            {/* About Us Link */}
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+            >
+              <Link
+                to="/about"
+                className="flex items-center gap-1.5 px-4 py-2.5 font-body text-sm font-medium text-foreground hover:text-primary transition-all duration-300 rounded-xl hover:bg-gradient-to-r hover:from-primary/10 hover:to-gold/10"
+              >
+                About Us
+              </Link>
+            </motion.div>
+
+            {/* Contact Link */}
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.15 }}
+            >
+              <Link
+                to="/contact"
+                className="flex items-center gap-1.5 px-4 py-2.5 font-body text-sm font-medium text-foreground hover:text-primary transition-all duration-300 rounded-xl hover:bg-gradient-to-r hover:from-primary/10 hover:to-gold/10"
+              >
+                Contact
+              </Link>
+            </motion.div>
             
             {/* Dynamic Menu Items from Database */}
             {headerMenu && headerMenu.items.length > 0 && (
-              <DynamicNav items={headerMenu.items} startIndex={3} />
+              <DynamicNav items={headerMenu.items} startIndex={4} />
             )}
             
-            {/* Static Category Links (fallback when no dynamic menu) */}
-            {(!headerMenu || headerMenu.items.length === 0) && categories.map((category, index) => (
-              <motion.div
-                key={category.name}
-                className="relative group"
-                onMouseEnter={() => setActiveCategory(category.name)}
-                onMouseLeave={() => setActiveCategory(null)}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: (index + 1) * 0.1, duration: 0.4 }}
-              >
-                <Link
-                  to={category.href}
-                  className="flex items-center gap-1 px-4 py-2.5 font-body text-sm font-medium text-foreground hover:text-primary transition-all duration-300 rounded-xl hover:bg-gradient-to-r hover:from-primary/10 hover:to-gold/10 relative overflow-hidden group"
-                >
-                  <span className="relative z-10">{category.name}</span>
-                  <motion.div
-                    animate={{ rotate: activeCategory === category.name ? 180 : 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <ChevronDown size={14} />
-                  </motion.div>
-                  <motion.div 
-                    className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-coral to-gold"
-                    initial={{ width: 0 }}
-                    whileHover={{ width: "100%" }}
-                    transition={{ duration: 0.3 }}
-                  />
-                </Link>
-
-                {/* Animated Dropdown */}
-                <AnimatePresence>
-                  {activeCategory === category.name && (
-                    <motion.div 
-                      className="absolute top-full left-0 w-64 bg-card/95 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl py-3 z-50 overflow-hidden"
-                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <motion.div 
-                        className="absolute inset-0 bg-gradient-to-br from-coral/5 via-transparent to-gold/5"
-                        animate={{ opacity: [0.3, 0.6, 0.3] }}
-                        transition={{ duration: 3, repeat: Infinity }}
-                      />
-                      {category.subcategories.map((sub, subIndex) => (
-                        <motion.div
-                          key={sub.name}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: subIndex * 0.05, duration: 0.2 }}
-                        >
-                          <Link
-                            to={sub.href}
-                            className="block px-5 py-3 font-body text-sm text-muted-foreground hover:text-primary hover:bg-gradient-to-r hover:from-primary/10 hover:to-transparent transition-all duration-200 relative group/item"
-                          >
-                            <span className="relative z-10 flex items-center gap-2">
-                              <motion.span 
-                                className="w-1.5 h-1.5 rounded-full bg-primary opacity-0 group-hover/item:opacity-100"
-                                initial={{ scale: 0 }}
-                                whileHover={{ scale: 1 }}
-                              />
-                              {sub.name}
-                            </span>
-                          </Link>
-                        </motion.div>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            ))}
           </nav>
 
           {/* Icons */}
@@ -571,48 +368,6 @@ const Header = () => {
               Sale
             </Link>
             <span className="text-border">|</span>
-            {categories.slice(0, 5).map((category, index) => (
-              <div 
-                key={category.name} 
-                className="flex items-center relative group"
-              >
-                <Link
-                  to={category.href}
-                  className="flex items-center gap-1 px-4 py-2.5 font-body text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
-                >
-                  {category.name}
-                  <ChevronDown size={12} className="transition-transform duration-200 group-hover:rotate-180" />
-                </Link>
-                
-                {/* Hover Dropdown */}
-                <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                  <div className="bg-card/95 backdrop-blur-xl border border-border rounded-xl shadow-xl py-2 min-w-[200px] overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-coral/5 via-transparent to-gold/5 pointer-events-none" />
-                    <Link
-                      to={category.href}
-                      className="block px-4 py-2.5 font-body text-sm font-semibold text-primary hover:bg-primary/10 transition-colors relative"
-                    >
-                      View All {category.name}
-                    </Link>
-                    <div className="h-px bg-border/50 mx-3 my-1" />
-                    {category.subcategories.map((sub) => (
-                      <Link
-                        key={sub.name}
-                        to={sub.href}
-                        className="block px-4 py-2 font-body text-xs text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors relative group/item"
-                      >
-                        <span className="flex items-center gap-2">
-                          <span className="w-1.5 h-1.5 rounded-full bg-primary/40 group-hover/item:bg-primary transition-colors" />
-                          {sub.name}
-                        </span>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-                {index < 4 && <span className="text-border">|</span>}
-              </div>
-            ))}
-            <span className="text-border">|</span>
             <Link
               to="/track-order"
               className="flex items-center gap-2 px-4 py-2.5 font-body text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
@@ -649,75 +404,78 @@ const Header = () => {
             transition={{ duration: 0.3 }}
           >
             <nav className="container mx-auto px-4 py-4">
-              {categories.map((category, index) => (
-                <motion.div 
-                  key={category.name} 
-                  className="border-b border-border/30"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1, duration: 0.3 }}
+              {/* Page Links */}
+              <motion.div
+                className="border-b border-border/30"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.1, duration: 0.3 }}
+              >
+                <Link
+                  to="/shop"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center justify-between w-full py-4 font-body text-base font-medium text-foreground"
                 >
-                  <button
-                    onClick={() => 
-                      setMobileExpandedCategory(
-                        mobileExpandedCategory === category.name ? null : category.name
-                      )
-                    }
-                    className="flex items-center justify-between w-full py-4 font-body text-base font-medium text-foreground group"
-                  >
-                    <span className="flex items-center gap-2">
-                      <motion.span 
-                        className="w-2 h-2 rounded-full bg-gradient-to-r from-coral to-gold"
-                        animate={{ scale: mobileExpandedCategory === category.name ? 1.2 : 1 }}
-                      />
-                      {category.name}
-                    </span>
-                    <motion.div
-                      animate={{ rotate: mobileExpandedCategory === category.name ? 180 : 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <ChevronDown size={18} />
-                    </motion.div>
-                  </button>
-                  
-                  <AnimatePresence>
-                    {mobileExpandedCategory === category.name && (
-                      <motion.div 
-                        className="pb-4 pl-6 space-y-1"
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <Link
-                          to={category.href}
-                          onClick={() => setIsMenuOpen(false)}
-                          className="block py-2.5 font-body text-sm text-primary font-semibold"
-                        >
-                          View All {category.name}
-                        </Link>
-                        {category.subcategories.map((sub, subIndex) => (
-                          <motion.div
-                            key={sub.name}
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: subIndex * 0.05 }}
-                          >
-                            <Link
-                              to={sub.href}
-                              onClick={() => setIsMenuOpen(false)}
-                              className="block py-2.5 font-body text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
-                            >
-                              <span className="w-1 h-1 rounded-full bg-muted-foreground" />
-                              {sub.name}
-                            </Link>
-                          </motion.div>
-                        ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              ))}
+                  <span className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-gradient-to-r from-coral to-gold" />
+                    Shop All
+                  </span>
+                </Link>
+              </motion.div>
+              
+              <motion.div
+                className="border-b border-border/30"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2, duration: 0.3 }}
+              >
+                <Link
+                  to="/track-order"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center justify-between w-full py-4 font-body text-base font-medium text-foreground"
+                >
+                  <span className="flex items-center gap-2">
+                    <Package size={18} />
+                    Track Order
+                  </span>
+                </Link>
+              </motion.div>
+              
+              <motion.div
+                className="border-b border-border/30"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3, duration: 0.3 }}
+              >
+                <Link
+                  to="/about"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center justify-between w-full py-4 font-body text-base font-medium text-foreground"
+                >
+                  <span className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-gradient-to-r from-coral to-gold" />
+                    About Us
+                  </span>
+                </Link>
+              </motion.div>
+              
+              <motion.div
+                className="border-b border-border/30"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4, duration: 0.3 }}
+              >
+                <Link
+                  to="/contact"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center justify-between w-full py-4 font-body text-base font-medium text-foreground"
+                >
+                  <span className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-gradient-to-r from-coral to-gold" />
+                    Contact
+                  </span>
+                </Link>
+              </motion.div>
               
               <motion.div 
                 className="space-y-3 pt-6 mt-2"
