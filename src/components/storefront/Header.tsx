@@ -162,26 +162,41 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-1">
+            {/* Shop All Link */}
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
-              className="relative"
-              onMouseEnter={() => setIsMegaMenuOpen(true)}
-              onMouseLeave={() => setIsMegaMenuOpen(false)}
             >
               <Link
                 to="/shop"
                 className="flex items-center gap-1 px-4 py-2.5 font-body text-sm font-medium text-foreground hover:text-primary transition-all duration-300 rounded-xl hover:bg-gradient-to-r hover:from-primary/10 hover:to-gold/10"
               >
                 Shop All
+              </Link>
+            </motion.div>
+
+            {/* Categories Dropdown */}
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.05 }}
+              className="relative"
+              onMouseEnter={() => setIsMegaMenuOpen(true)}
+              onMouseLeave={() => setIsMegaMenuOpen(false)}
+            >
+              <button
+                className="flex items-center gap-1 px-4 py-2.5 font-body text-sm font-medium text-foreground hover:text-primary transition-all duration-300 rounded-xl hover:bg-gradient-to-r hover:from-primary/10 hover:to-gold/10"
+              >
+                <Tag size={16} />
+                Categories
                 <motion.div
                   animate={{ rotate: isMegaMenuOpen ? 180 : 0 }}
                   transition={{ duration: 0.3 }}
                 >
                   <ChevronDown size={14} />
                 </motion.div>
-              </Link>
+              </button>
               
               {/* Mega Menu Dropdown */}
               <AnimatePresence>
@@ -296,10 +311,12 @@ const Header = () => {
                 )}
               </AnimatePresence>
             </motion.div>
+
+            {/* Track Order Link */}
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.05 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
             >
               <Link
                 to="/track-order"
