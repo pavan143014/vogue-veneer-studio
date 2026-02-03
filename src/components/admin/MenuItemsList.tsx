@@ -31,6 +31,7 @@ interface MenuItemsListProps {
   onDeleteItem: (id: string, parentId?: string) => void;
   onAddChild: (parentId: string) => void;
   onDragEnd: (event: DragEndEvent) => void;
+  onChildDragEnd: (parentId: string, event: DragEndEvent) => void;
 }
 
 export const MenuItemsList = ({
@@ -41,6 +42,7 @@ export const MenuItemsList = ({
   onDeleteItem,
   onAddChild,
   onDragEnd,
+  onChildDragEnd,
 }: MenuItemsListProps) => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   
@@ -115,6 +117,7 @@ export const MenuItemsList = ({
                       onEdit={onEditItem}
                       onDelete={onDeleteItem}
                       onAddChild={onAddChild}
+                      onChildDragEnd={onChildDragEnd}
                     />
                   ))}
                 </div>
