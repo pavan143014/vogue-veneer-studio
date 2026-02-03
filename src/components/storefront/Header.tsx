@@ -336,58 +336,34 @@ const Header = () => {
         </AnimatePresence>
       </div>
 
-      {/* Sticky Sub Header Navigation Menu */}
+      {/* Sticky Sub Header - Shopping Quick Links */}
       <div 
-        className={`hidden md:block border-t border-border/30 bg-background/95 backdrop-blur-md sticky top-0 z-40 transition-shadow duration-300 ${
-          isScrolled ? "shadow-md" : ""
+        className={`hidden md:block border-t border-border/30 bg-background/95 backdrop-blur-md transition-shadow duration-300 ${
+          isScrolled ? "shadow-sm" : ""
         }`}
       >
         <div className="container mx-auto px-4">
-          <nav className="flex items-center justify-center gap-1">
+          <nav className="flex items-center justify-center gap-6">
             <Link
-              to="/shop"
-              className="flex items-center gap-2 px-4 py-2.5 font-body text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
+              to="/shop?collection=new"
+              className="flex items-center gap-2 px-3 py-2 font-body text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
             >
               <Tag size={14} />
               New Arrivals
             </Link>
-            <span className="text-border">|</span>
             <Link
               to="/shop?collection=bestsellers"
-              className="flex items-center gap-2 px-4 py-2.5 font-body text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
+              className="flex items-center gap-2 px-3 py-2 font-body text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
             >
               <Heart size={14} />
               Best Sellers
             </Link>
-            <span className="text-border">|</span>
             <Link
               to="/shop?collection=sale"
-              className="flex items-center gap-2 px-4 py-2.5 font-body text-xs font-medium text-coral hover:text-coral-dark transition-colors"
+              className="flex items-center gap-2 px-3 py-2 font-body text-xs font-medium text-coral hover:text-coral-dark transition-colors"
             >
               <Percent size={14} />
               Sale
-            </Link>
-            <span className="text-border">|</span>
-            <Link
-              to="/track-order"
-              className="flex items-center gap-2 px-4 py-2.5 font-body text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
-            >
-              <Truck size={14} />
-              Track Order
-            </Link>
-            <span className="text-border">|</span>
-            <Link
-              to="/about"
-              className="flex items-center gap-2 px-4 py-2.5 font-body text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
-            >
-              About Us
-            </Link>
-            <span className="text-border">|</span>
-            <Link
-              to="/contact"
-              className="flex items-center gap-2 px-4 py-2.5 font-body text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
-            >
-              Contact
             </Link>
           </nav>
         </div>
