@@ -4,8 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { useCartSync } from "@/hooks/useCartSync";
-import CartDrawer from "@/components/storefront/CartDrawer";
+import LocalCartDrawer from "@/components/storefront/LocalCartDrawer";
 import MobileBottomNav from "@/components/storefront/MobileBottomNav";
 import Index from "./pages/Index";
 import Shop from "./pages/Shop";
@@ -17,6 +16,7 @@ import ContactUs from "./pages/ContactUs";
 import Account from "./pages/Account";
 import AccountWishlist from "./pages/AccountWishlist";
 import AccountOrders from "./pages/AccountOrders";
+import Checkout from "./pages/Checkout";
 import NotFound from "./pages/NotFound";
 
 // Admin Pages
@@ -34,19 +34,18 @@ const queryClient = new QueryClient();
 
 // Component to use hooks inside providers
 const AppContent = () => {
-  useCartSync();
-  
   return (
     <>
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <CartDrawer />
+        <LocalCartDrawer />
         <Routes>
           {/* Storefront Routes */}
           <Route path="/" element={<><MobileBottomNav /><div className="pb-16 md:pb-0"><Index /></div></>} />
           <Route path="/shop" element={<><MobileBottomNav /><div className="pb-16 md:pb-0"><Shop /></div></>} />
           <Route path="/product/:handle" element={<><MobileBottomNav /><div className="pb-16 md:pb-0"><ProductDetail /></div></>} />
+          <Route path="/checkout" element={<><MobileBottomNav /><div className="pb-16 md:pb-0"><Checkout /></div></>} />
           <Route path="/order-confirmation" element={<><MobileBottomNav /><div className="pb-16 md:pb-0"><OrderConfirmation /></div></>} />
           <Route path="/track-order" element={<><MobileBottomNav /><div className="pb-16 md:pb-0"><TrackOrder /></div></>} />
           <Route path="/about" element={<><MobileBottomNav /><div className="pb-16 md:pb-0"><AboutUs /></div></>} />

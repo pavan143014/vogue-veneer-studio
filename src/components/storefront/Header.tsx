@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Search, ShoppingBag, Menu, X, Sparkles, Gift, Percent, Package, Heart, Tag, Truck, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useCartStore } from "@/stores/cartStore";
+import { useLocalCartStore } from "@/stores/localCartStore";
 import { Link, useNavigate } from "react-router-dom";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { motion, AnimatePresence } from "framer-motion";
@@ -22,7 +22,7 @@ const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const { totalItems, setCartOpen } = useCartStore();
+  const { totalItems, setCartOpen } = useLocalCartStore();
   const itemCount = totalItems();
   const navigate = useNavigate();
   
