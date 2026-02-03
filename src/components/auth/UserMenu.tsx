@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { User, LogOut, Heart, Package, Settings } from "lucide-react";
+import { User, LogOut, Heart, Package, Settings, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -10,12 +10,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
+import { useAdmin } from "@/hooks/useAdmin";
 import AuthModal from "./AuthModal";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
 const UserMenu = () => {
   const { user, profile, isAuthenticated, signOut, loading } = useAuth();
+  const { isAdmin } = useAdmin();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
 
@@ -93,6 +95,17 @@ const UserMenu = () => {
             </p>
           </div>
           <DropdownMenuSeparator />
+          {isAdmin && (
+            <>
+              <DropdownMenuItem asChild>
+                <Link to="/admin" className="flex items-center cursor-pointer">
+                  <LayoutDashboard className="mr-2 h-4 w-4" />
+                  <span className="font-body">Admin Dashboard</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
           <DropdownMenuItem asChild>
             <Link to="/account" className="flex items-center cursor-pointer">
               <Settings className="mr-2 h-4 w-4" />
