@@ -57,14 +57,19 @@ const ProductCard = ({
           {/* Badges */}
           <div className="absolute top-3 left-3 flex flex-col gap-2">
             {isNew && (
-              <span className="bg-primary text-primary-foreground text-xs font-body font-medium px-3 py-1 rounded-full">
-                New
+              <span className="bg-secondary text-secondary-foreground text-xs font-body font-semibold px-3 py-1.5 rounded-full shadow-md">
+                ✨ New
               </span>
             )}
             {isSale && discount > 0 && (
-              <span className="bg-accent text-accent-foreground text-xs font-body font-medium px-3 py-1 rounded-full">
-                -{discount}%
-              </span>
+              <motion.span 
+                className="bg-destructive text-destructive-foreground text-sm font-body font-bold px-3 py-1.5 rounded-full shadow-lg"
+                initial={{ scale: 1 }}
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                -{discount}% OFF
+              </motion.span>
             )}
           </div>
 
@@ -112,14 +117,19 @@ const ProductCard = ({
           <h3 className="font-display text-lg font-medium text-foreground line-clamp-1 mb-2 group-hover:text-primary transition-colors">
             {name}
           </h3>
-          <div className="flex items-center gap-2">
-            <span className="font-body font-semibold text-foreground">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className={`font-body font-bold text-lg ${isSale ? 'text-destructive' : 'text-foreground'}`}>
               ₹{price.toLocaleString()}
             </span>
             {originalPrice && (
-              <span className="font-body text-sm text-muted-foreground line-through">
-                ₹{originalPrice.toLocaleString()}
-              </span>
+              <>
+                <span className="font-body text-sm text-muted-foreground line-through">
+                  ₹{originalPrice.toLocaleString()}
+                </span>
+                <span className="bg-accent/20 text-accent-foreground text-xs font-body font-semibold px-2 py-0.5 rounded">
+                  Save ₹{(originalPrice - price).toLocaleString()}
+                </span>
+              </>
             )}
           </div>
         </div>
