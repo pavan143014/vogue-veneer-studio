@@ -2,7 +2,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+  'Access-Control-Allow-Methods': 'GET, PATCH, OPTIONS',
 };
 
 Deno.serve(async (req) => {
@@ -51,6 +52,47 @@ Deno.serve(async (req) => {
 
     const url = new URL(req.url);
     const orderId = url.searchParams.get('order_id');
+
+    // Handle PATCH request for updating order status
+    if (req.method === 'PATCH') {
+      if (!orderId) {
+        return new Response(
+          JSON.stringify({ error: 'order_id is required' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const body = await req.json();
+      const { status } = body;
+
+      const validStatuses = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
+      if (!status || !validStatuses.includes(status)) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid status. Valid values: ' + validStatuses.join(', ') }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const { data: updatedOrder, error: updateError } = await supabase
+        .from('orders')
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq('id', orderId)
+        .select()
+        .single();
+
+      if (updateError) {
+        console.error('Error updating order:', updateError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to update order status' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({ order: updatedOrder, message: 'Order status updated successfully' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     if (orderId) {
       // Fetch specific order with items

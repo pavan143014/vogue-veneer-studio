@@ -69,16 +69,39 @@ const AdminOrders = () => {
 
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
     setUpdating(true);
-    const { error } = await supabase
-      .from("orders")
-      .update({ status: newStatus })
-      .eq("id", orderId);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Please log in to update orders");
+        setUpdating(false);
+        return;
+      }
 
-    if (error) {
-      toast.error("Failed to update order status");
-    } else {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-orders?order_id=${orderId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ status: newStatus }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to update order');
+      }
+
       toast.success("Order status updated");
+      // Update local state to reflect the change
+      setSelectedOrder((prev: any) => prev ? { ...prev, status: newStatus } : null);
       await fetchData();
+    } catch (error: any) {
+      console.error('Update error:', error);
+      toast.error(error.message || "Failed to update order status");
     }
     setUpdating(false);
   };
