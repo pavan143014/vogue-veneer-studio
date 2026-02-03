@@ -10,10 +10,22 @@ import {
   Link as LinkIcon,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  useSortable,
-} from "@dnd-kit/sortable";
+import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 
 export interface MenuItem {
   id: string;
@@ -22,12 +34,91 @@ export interface MenuItem {
   children?: MenuItem[];
 }
 
+interface SortableChildItemProps {
+  child: MenuItem;
+  parentId: string;
+  onEdit: (item: MenuItem, parentId?: string) => void;
+  onDelete: (id: string, parentId?: string) => void;
+}
+
+const SortableChildItem = ({
+  child,
+  parentId,
+  onEdit,
+  onDelete,
+}: SortableChildItemProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: child.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <motion.div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center gap-2 p-2.5 rounded-lg bg-muted/30 group hover:bg-muted/50 transition-colors ${
+        isDragging ? "opacity-50 shadow-lg ring-2 ring-primary/50 z-50" : ""
+      }`}
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+    >
+      {/* Drag handle for child */}
+      <button
+        {...attributes}
+        {...listeners}
+        className="touch-none cursor-grab active:cursor-grabbing p-1 rounded hover:bg-accent transition-colors"
+        aria-label="Drag to reorder"
+      >
+        <GripVertical className="h-3.5 w-3.5 text-muted-foreground" />
+      </button>
+
+      <div className="flex-1 min-w-0">
+        <p className="font-body text-sm font-medium text-foreground">
+          {child.label}
+        </p>
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          <LinkIcon size={9} />
+          <span className="truncate">{child.href}</span>
+        </div>
+      </div>
+      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7"
+          onClick={() => onEdit(child, parentId)}
+        >
+          <Edit2 className="h-3.5 w-3.5" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7 text-destructive hover:text-destructive"
+          onClick={() => onDelete(child.id, parentId)}
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+    </motion.div>
+  );
+};
+
 interface SortableMenuItemProps {
   item: MenuItem;
   depth?: number;
   onEdit: (item: MenuItem, parentId?: string) => void;
   onDelete: (id: string, parentId?: string) => void;
   onAddChild: (parentId: string) => void;
+  onChildDragEnd?: (parentId: string, event: DragEndEvent) => void;
 }
 
 export const SortableMenuItem = ({
@@ -36,9 +127,21 @@ export const SortableMenuItem = ({
   onEdit,
   onDelete,
   onAddChild,
+  onChildDragEnd,
 }: SortableMenuItemProps) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const hasChildren = item.children && item.children.length > 0;
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const {
     attributes,
@@ -52,6 +155,12 @@ export const SortableMenuItem = ({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
+  };
+
+  const handleChildDragEnd = (event: DragEndEvent) => {
+    if (onChildDragEnd) {
+      onChildDragEnd(item.id, event);
+    }
   };
 
   return (
@@ -140,7 +249,7 @@ export const SortableMenuItem = ({
         </div>
       </motion.div>
 
-      {/* Children */}
+      {/* Children with drag-and-drop */}
       <AnimatePresence>
         {isExpanded && hasChildren && (
           <motion.div
@@ -149,42 +258,26 @@ export const SortableMenuItem = ({
             exit={{ opacity: 0, height: 0 }}
             className="ml-8 pl-4 border-l-2 border-muted space-y-1"
           >
-            {item.children!.map((child) => (
-              <motion.div
-                key={child.id}
-                className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/30 group hover:bg-muted/50 transition-colors"
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleChildDragEnd}
+            >
+              <SortableContext
+                items={item.children!.map((c) => c.id)}
+                strategy={verticalListSortingStrategy}
               >
-                <div className="flex-1 min-w-0">
-                  <p className="font-body text-sm font-medium text-foreground">
-                    {child.label}
-                  </p>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <LinkIcon size={9} />
-                    <span className="truncate">{child.href}</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={() => onEdit(child, item.id)}
-                  >
-                    <Edit2 className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 text-destructive hover:text-destructive"
-                    onClick={() => onDelete(child.id, item.id)}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              </motion.div>
-            ))}
+                {item.children!.map((child) => (
+                  <SortableChildItem
+                    key={child.id}
+                    child={child}
+                    parentId={item.id}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                  />
+                ))}
+              </SortableContext>
+            </DndContext>
           </motion.div>
         )}
       </AnimatePresence>

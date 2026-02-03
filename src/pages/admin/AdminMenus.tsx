@@ -186,6 +186,37 @@ const AdminMenus = () => {
     }
   };
 
+  const handleChildDragEnd = async (parentId: string, event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id || !currentMenu) return;
+
+    const items = currentMenu.items as MenuItem[];
+    const parentIndex = items.findIndex((item) => item.id === parentId);
+
+    if (parentIndex === -1) return;
+
+    const parent = items[parentIndex];
+    const children = parent.children || [];
+
+    const oldIndex = children.findIndex((child) => child.id === active.id);
+    const newIndex = children.findIndex((child) => child.id === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reorderedChildren = arrayMove(children, oldIndex, newIndex);
+    const updatedItems = items.map((item) =>
+      item.id === parentId ? { ...item, children: reorderedChildren } : item
+    );
+
+    const { error } = await updateMenu(currentMenu.id, updatedItems);
+    if (error) {
+      toast.error("Failed to reorder sub-items");
+    } else {
+      toast.success("Sub-item order updated");
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
@@ -240,6 +271,7 @@ const AdminMenus = () => {
               onDeleteItem={handleDeleteItem}
               onAddChild={handleAddChild}
               onDragEnd={handleDragEnd}
+              onChildDragEnd={handleChildDragEnd}
             />
           </motion.div>
         </TabsContent>
@@ -265,6 +297,7 @@ const AdminMenus = () => {
               onDeleteItem={handleDeleteItem}
               onAddChild={handleAddChild}
               onDragEnd={handleDragEnd}
+              onChildDragEnd={handleChildDragEnd}
             />
           </motion.div>
         </TabsContent>
