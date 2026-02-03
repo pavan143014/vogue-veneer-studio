@@ -1,6 +1,6 @@
 import { Home, ShoppingBag, Heart, User, Store } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import { useCartStore } from "@/stores/cartStore";
+import { useLocalCartStore } from "@/stores/localCartStore";
 import { useWishlistStore } from "@/stores/wishlistStore";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -16,7 +16,7 @@ const navItems = [
 
 const MobileBottomNav = () => {
   const location = useLocation();
-  const { totalItems, setCartOpen } = useCartStore();
+  const { totalItems, setCartOpen } = useLocalCartStore();
   const { items: wishlistItems } = useWishlistStore();
   const cartCount = totalItems();
   const wishlistCount = wishlistItems.length;

@@ -10,6 +10,7 @@ import {
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { toast } from "sonner";
 import { Product } from "@/data/products";
+import { useLocalCartStore } from "@/stores/localCartStore";
 
 interface ProductCardProps {
   id?: string;
@@ -44,6 +45,8 @@ const ProductCard = ({
   const [selectedColor, setSelectedColor] = useState<string | null>(colors[0]?.name || null);
   const [quantity, setQuantity] = useState(1);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  
+  const { addItem } = useLocalCartStore();
 
   const discount = originalPrice 
     ? Math.round(((originalPrice - price) / originalPrice) * 100) 
@@ -57,8 +60,30 @@ const ProductCard = ({
 
     setIsAddingToCart(true);
     
-    // Simulate adding to cart (you can integrate with your cart store here)
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Create product object for cart
+    const product: Product = {
+      id: id || name.toLowerCase().replace(/\s+/g, '-'),
+      name,
+      price,
+      originalPrice,
+      image,
+      category,
+      isNew,
+      isSale,
+      description: "A beautiful piece from our exclusive collection.",
+      details: [],
+      sizes,
+      colors,
+      fabric: "",
+      careInstructions: []
+    };
+    
+    addItem({
+      product,
+      selectedSize,
+      selectedColor: selectedColor || undefined,
+      quantity
+    });
     
     toast.success("Added to cart!", {
       description: `${name} - Size ${selectedSize} × ${quantity}`,
