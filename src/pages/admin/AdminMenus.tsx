@@ -1,154 +1,61 @@
 import { useState } from "react";
 import { useAdminData } from "@/hooks/useAdmin";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Menu,
-  Plus,
-  Trash2,
-  GripVertical,
-  Edit2,
-  Loader2,
-  Link as LinkIcon,
-  LayoutTemplate,
-  Footprints,
-} from "lucide-react";
+import { LayoutTemplate, Footprints, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-
-interface MenuItem {
-  id: string;
-  label: string;
-  href: string;
-  children?: MenuItem[];
-}
-
-interface SortableItemProps {
-  item: MenuItem;
-  onEdit: (item: MenuItem) => void;
-  onDelete: (id: string) => void;
-}
-
-const SortableItem = ({ item, onEdit, onDelete }: SortableItemProps) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: item.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
-  return (
-    <motion.div
-      ref={setNodeRef}
-      style={style}
-      className={`flex items-center gap-3 p-3 rounded-xl bg-muted/50 group hover:bg-muted transition-colors ${
-        isDragging ? "opacity-50 shadow-lg ring-2 ring-primary/50 z-50" : ""
-      }`}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-    >
-      <button
-        {...attributes}
-        {...listeners}
-        className="touch-none cursor-grab active:cursor-grabbing p-1 rounded hover:bg-accent transition-colors"
-        aria-label="Drag to reorder"
-      >
-        <GripVertical className="h-4 w-4 text-muted-foreground" />
-      </button>
-      <div className="flex-1 min-w-0">
-        <p className="font-body font-medium text-foreground">{item.label}</p>
-        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-          <LinkIcon size={10} />
-          <span className="truncate">{item.href}</span>
-        </div>
-      </div>
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={() => onEdit(item)}
-        >
-          <Edit2 className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 text-destructive hover:text-destructive"
-          onClick={() => onDelete(item.id)}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      </div>
-    </motion.div>
-  );
-};
+import { arrayMove } from "@dnd-kit/sortable";
+import { DragEndEvent } from "@dnd-kit/core";
+import { MenuItemsList } from "@/components/admin/MenuItemsList";
+import { MenuItemDialog } from "@/components/admin/MenuItemDialog";
+import { MenuItem } from "@/components/admin/SortableMenuItem";
 
 const AdminMenus = () => {
   const { menus, loading, updateMenu } = useAdminData();
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+  const [editingParentId, setEditingParentId] = useState<string | null>(null);
+  const [isAddingChild, setIsAddingChild] = useState(false);
+  const [addingToParentId, setAddingToParentId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [itemForm, setItemForm] = useState({ label: "", href: "" });
   const [activeTab, setActiveTab] = useState("header");
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
   const headerMenu = menus.find((m) => m.slug === "header");
   const footerMenu = menus.find((m) => m.slug === "footer");
-
   const currentMenu = activeTab === "header" ? headerMenu : footerMenu;
+
+  const getParentLabel = () => {
+    if (!addingToParentId || !currentMenu) return undefined;
+    const parent = (currentMenu.items as MenuItem[]).find(
+      (i) => i.id === addingToParentId
+    );
+    return parent?.label;
+  };
 
   const handleAddItem = () => {
     setEditingItem(null);
+    setEditingParentId(null);
+    setIsAddingChild(false);
+    setAddingToParentId(null);
     setItemForm({ label: "", href: "" });
     setIsDialogOpen(true);
   };
 
-  const handleEditItem = (item: MenuItem) => {
+  const handleAddChild = (parentId: string) => {
+    setEditingItem(null);
+    setEditingParentId(null);
+    setIsAddingChild(true);
+    setAddingToParentId(parentId);
+    setItemForm({ label: "", href: "" });
+    setIsDialogOpen(true);
+  };
+
+  const handleEditItem = (item: MenuItem, parentId?: string) => {
     setEditingItem(item);
+    setEditingParentId(parentId || null);
+    setIsAddingChild(false);
+    setAddingToParentId(null);
     setItemForm({ label: item.label, href: item.href });
     setIsDialogOpen(true);
   };
@@ -160,12 +67,48 @@ const AdminMenus = () => {
     let items = [...(currentMenu.items as MenuItem[])];
 
     if (editingItem) {
+      // Editing existing item
+      if (editingParentId) {
+        // Editing a child item
+        items = items.map((item) =>
+          item.id === editingParentId
+            ? {
+                ...item,
+                children: (item.children || []).map((child) =>
+                  child.id === editingItem.id
+                    ? { ...child, label: itemForm.label, href: itemForm.href }
+                    : child
+                ),
+              }
+            : item
+        );
+      } else {
+        // Editing a top-level item
+        items = items.map((item) =>
+          item.id === editingItem.id
+            ? { ...item, label: itemForm.label, href: itemForm.href }
+            : item
+        );
+      }
+    } else if (isAddingChild && addingToParentId) {
+      // Adding a child item
       items = items.map((item) =>
-        item.id === editingItem.id
-          ? { ...item, label: itemForm.label, href: itemForm.href }
+        item.id === addingToParentId
+          ? {
+              ...item,
+              children: [
+                ...(item.children || []),
+                {
+                  id: Date.now().toString(),
+                  label: itemForm.label,
+                  href: itemForm.href,
+                },
+              ],
+            }
           : item
       );
     } else {
+      // Adding a new top-level item
       items.push({
         id: Date.now().toString(),
         label: itemForm.label,
@@ -178,20 +121,40 @@ const AdminMenus = () => {
     if (error) {
       toast.error("Failed to save menu");
     } else {
-      toast.success(editingItem ? "Menu item updated" : "Menu item added");
+      const message = editingItem
+        ? "Menu item updated"
+        : isAddingChild
+        ? "Sub-item added"
+        : "Menu item added";
+      toast.success(message);
       setIsDialogOpen(false);
     }
     setSaving(false);
   };
 
-  const handleDeleteItem = async (itemId: string) => {
+  const handleDeleteItem = async (itemId: string, parentId?: string) => {
     if (!currentMenu) return;
     if (!confirm("Are you sure you want to delete this menu item?")) return;
 
     setSaving(true);
-    const items = (currentMenu.items as MenuItem[]).filter(
-      (item) => item.id !== itemId
-    );
+    let items = currentMenu.items as MenuItem[];
+
+    if (parentId) {
+      // Deleting a child item
+      items = items.map((item) =>
+        item.id === parentId
+          ? {
+              ...item,
+              children: (item.children || []).filter(
+                (child) => child.id !== itemId
+              ),
+            }
+          : item
+      );
+    } else {
+      // Deleting a top-level item
+      items = items.filter((item) => item.id !== itemId);
+    }
 
     const { error } = await updateMenu(currentMenu.id, items);
     if (error) {
@@ -202,12 +165,12 @@ const AdminMenus = () => {
     setSaving(false);
   };
 
-  const handleDragEnd = async (event: DragEndEvent, menu: any) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
 
-    if (!over || active.id === over.id || !menu) return;
+    if (!over || active.id === over.id || !currentMenu) return;
 
-    const items = menu.items as MenuItem[];
+    const items = currentMenu.items as MenuItem[];
     const oldIndex = items.findIndex((item) => item.id === active.id);
     const newIndex = items.findIndex((item) => item.id === over.id);
 
@@ -215,8 +178,7 @@ const AdminMenus = () => {
 
     const reorderedItems = arrayMove(items, oldIndex, newIndex);
 
-    // Optimistically update and save
-    const { error } = await updateMenu(menu.id, reorderedItems);
+    const { error } = await updateMenu(currentMenu.id, reorderedItems);
     if (error) {
       toast.error("Failed to reorder menu items");
     } else {
@@ -232,63 +194,6 @@ const AdminMenus = () => {
     );
   }
 
-  const MenuItemsList = ({ menu }: { menu: any }) => {
-    if (!menu) return null;
-    const items = menu.items as MenuItem[];
-
-    return (
-      <Card className="border-0 shadow-lg">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="font-display text-xl">{menu.name}</CardTitle>
-            <p className="text-xs text-muted-foreground mt-1">
-              Drag items to reorder
-            </p>
-          </div>
-          <Button size="sm" onClick={handleAddItem} className="gap-2">
-            <Plus size={16} />
-            Add Item
-          </Button>
-        </CardHeader>
-        <CardContent>
-          {items?.length === 0 ? (
-            <div className="text-center py-12">
-              <Menu className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="font-display text-lg text-foreground mb-2">
-                No menu items
-              </h3>
-              <p className="font-body text-muted-foreground">
-                Add your first menu item to get started
-              </p>
-            </div>
-          ) : (
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={(event) => handleDragEnd(event, menu)}
-            >
-              <SortableContext
-                items={items.map((i) => i.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                <div className="space-y-2">
-                  {items.map((item) => (
-                    <SortableItem
-                      key={item.id}
-                      item={item}
-                      onEdit={handleEditItem}
-                      onDelete={handleDeleteItem}
-                    />
-                  ))}
-                </div>
-              </SortableContext>
-            </DndContext>
-          )}
-        </CardContent>
-      </Card>
-    );
-  };
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -297,7 +202,8 @@ const AdminMenus = () => {
           Navigation Menus
         </h1>
         <p className="font-body text-muted-foreground">
-          Manage your store navigation. Changes sync instantly to storefront.
+          Manage your store navigation with nested sub-menus. Changes sync
+          instantly.
         </p>
       </div>
 
@@ -318,7 +224,22 @@ const AdminMenus = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <MenuItemsList menu={headerMenu} />
+            <MenuItemsList
+              menu={
+                headerMenu
+                  ? {
+                      id: headerMenu.id,
+                      name: headerMenu.name,
+                      items: headerMenu.items as MenuItem[],
+                    }
+                  : null
+              }
+              onAddItem={handleAddItem}
+              onEditItem={handleEditItem}
+              onDeleteItem={handleDeleteItem}
+              onAddChild={handleAddChild}
+              onDragEnd={handleDragEnd}
+            />
           </motion.div>
         </TabsContent>
 
@@ -327,63 +248,38 @@ const AdminMenus = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <MenuItemsList menu={footerMenu} />
+            <MenuItemsList
+              menu={
+                footerMenu
+                  ? {
+                      id: footerMenu.id,
+                      name: footerMenu.name,
+                      items: footerMenu.items as MenuItem[],
+                    }
+                  : null
+              }
+              onAddItem={handleAddItem}
+              onEditItem={handleEditItem}
+              onDeleteItem={handleDeleteItem}
+              onAddChild={handleAddChild}
+              onDragEnd={handleDragEnd}
+            />
           </motion.div>
         </TabsContent>
       </Tabs>
 
       {/* Add/Edit Item Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="font-display text-xl">
-              {editingItem ? "Edit Menu Item" : "Add Menu Item"}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 mt-4">
-            <div className="space-y-2">
-              <Label htmlFor="label">Label</Label>
-              <Input
-                id="label"
-                value={itemForm.label}
-                onChange={(e) =>
-                  setItemForm({ ...itemForm, label: e.target.value })
-                }
-                placeholder="e.g., Home, Shop, About"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="href">Link URL</Label>
-              <Input
-                id="href"
-                value={itemForm.href}
-                onChange={(e) =>
-                  setItemForm({ ...itemForm, href: e.target.value })
-                }
-                placeholder="e.g., /, /shop, /about"
-              />
-            </div>
-            <div className="flex gap-3 pt-4">
-              <Button
-                onClick={handleSaveItem}
-                disabled={saving || !itemForm.label || !itemForm.href}
-                className="flex-1"
-              >
-                {saving ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : editingItem ? (
-                  "Update Item"
-                ) : (
-                  "Add Item"
-                )}
-              </Button>
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <MenuItemDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        form={itemForm}
+        onFormChange={setItemForm}
+        onSave={handleSaveItem}
+        saving={saving}
+        isEditing={!!editingItem}
+        isAddingChild={isAddingChild}
+        parentLabel={getParentLabel()}
+      />
     </div>
   );
 };
