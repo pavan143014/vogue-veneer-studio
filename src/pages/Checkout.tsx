@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLocalCartStore } from "@/stores/localCartStore";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Header from "@/components/storefront/Header";
 import Footer from "@/components/storefront/Footer";
@@ -85,24 +86,66 @@ const Checkout = () => {
     setIsProcessing(true);
 
     try {
-      // Generate order number
-      const orderNumber = `AE${Date.now().toString(36).toUpperCase()}`;
-      
-      // For now, simulate successful order (Razorpay integration will be added)
-      // In production, this would call an edge function to create Razorpay order
-      
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      toast.success("Order placed successfully!", {
-        description: `Order #${orderNumber}`,
+      // Prepare order items for the API
+      const orderItems = items.map((item) => ({
+        product_id: item.product.id,
+        product_title: item.product.name,
+        variant_id: `${item.product.id}-${item.selectedSize}`,
+        variant_title: item.selectedSize,
+        price: item.product.price,
+        quantity: item.quantity,
+        image_url: item.product.image,
+        selected_options: [{ size: item.selectedSize }],
+      }));
+
+      // Calculate estimated delivery (5-7 business days)
+      const deliveryDate = new Date();
+      deliveryDate.setDate(deliveryDate.getDate() + 7);
+      const estimatedDelivery = deliveryDate.toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
       });
-      
+
+      // Call the create-order edge function
+      const { data, error } = await supabase.functions.invoke("create-order", {
+        body: {
+          full_name: shippingDetails.fullName,
+          email: shippingDetails.email,
+          phone: shippingDetails.phone,
+          address: shippingDetails.address,
+          city: shippingDetails.city,
+          state: shippingDetails.state,
+          pincode: shippingDetails.pincode,
+          subtotal: subtotal,
+          shipping_cost: shipping,
+          total: total,
+          currency: "INR",
+          estimated_delivery: estimatedDelivery,
+          items: orderItems,
+        },
+      });
+
+      if (error) {
+        console.error("Order creation error:", error);
+        throw new Error(error.message || "Failed to create order");
+      }
+
+      if (!data?.success) {
+        throw new Error(data?.error || "Failed to create order");
+      }
+
+      toast.success("Order placed successfully!", {
+        description: `Order #${data.order.order_number}`,
+      });
+
       clearCart();
-      navigate(`/order-confirmation?order=${orderNumber}`);
-      
+      navigate(`/order-confirmation?order=${data.order.order_number}`);
     } catch (error) {
       console.error("Payment error:", error);
-      toast.error("Payment failed. Please try again.");
+      toast.error(
+        error instanceof Error ? error.message : "Payment failed. Please try again."
+      );
     } finally {
       setIsProcessing(false);
     }
