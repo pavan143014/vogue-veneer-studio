@@ -45,18 +45,20 @@ const AdminLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && !user) {
+    // Only redirect when both auth and admin checks are complete
+    if (authLoading || adminLoading) return;
+    
+    if (!user) {
       navigate("/");
       toast.error("Please sign in to access admin dashboard");
+      return;
     }
-  }, [authLoading, user, navigate]);
-
-  useEffect(() => {
-    if (!adminLoading && !isAdmin && user) {
+    
+    if (!isAdmin) {
       navigate("/");
       toast.error("You don't have admin access");
     }
-  }, [adminLoading, isAdmin, user, navigate]);
+  }, [authLoading, adminLoading, user, isAdmin, navigate]);
 
   const handleSignOut = async () => {
     await signOut();
