@@ -8,6 +8,8 @@ import { categories } from "@/data/categories";
 import { motion, AnimatePresence } from "framer-motion";
 import WishlistDrawer from "./WishlistDrawer";
 import UserMenu from "@/components/auth/UserMenu";
+import { DynamicNav } from "./DynamicNav";
+import { useNavigationMenu } from "@/hooks/useNavigationMenu";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -46,6 +48,9 @@ const Header = () => {
   const { totalItems, setCartOpen } = useCartStore();
   const itemCount = totalItems();
   const navigate = useNavigate();
+  
+  // Fetch dynamic navigation menu from database
+  const { menu: headerMenu } = useNavigationMenu("header");
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -326,7 +331,14 @@ const Header = () => {
                 Track Order
               </Link>
             </motion.div>
-            {categories.map((category, index) => (
+            
+            {/* Dynamic Menu Items from Database */}
+            {headerMenu && headerMenu.items.length > 0 && (
+              <DynamicNav items={headerMenu.items} startIndex={3} />
+            )}
+            
+            {/* Static Category Links (fallback when no dynamic menu) */}
+            {(!headerMenu || headerMenu.items.length === 0) && categories.map((category, index) => (
               <motion.div
                 key={category.name}
                 className="relative group"
