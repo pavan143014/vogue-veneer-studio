@@ -2,20 +2,35 @@ import { Button } from "@/components/ui/button";
 import { Play, Award, Heart, Leaf } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import brandStoryImg from "@/assets/brand-story.jpg";
+import brandStoryImgDefault from "@/assets/brand-story.jpg";
 import { ScrollReveal, Parallax } from "@/components/ScrollReveal";
+import { useStorefrontContent, BrandStoryContent } from "@/hooks/useStorefrontContent";
+
+const defaultContent: BrandStoryContent = {
+  badge: "Our Story",
+  title_line1: "Crafting Elegance,",
+  title_line2: "One Stitch at a Time",
+  paragraph1: "Born from a passion for preserving India's rich textile heritage, Aroma Ethnic brings you handcrafted pieces that tell stories of tradition and artisanship.",
+  paragraph2: "Each kurthi and dress in our collection is thoughtfully designed, combining age-old techniques with contemporary aesthetics. We work directly with skilled artisans across India, ensuring fair practices and authentic craftsmanship.",
+  years_of_excellence: "5+",
+  stats: [
+    { value: "500+", label: "Unique Designs" },
+    { value: "50+", label: "Artisan Partners" },
+    { value: "15K+", label: "Happy Customers" },
+  ],
+  image_url: "",
+};
 
 const BrandStory = () => {
+  const { content } = useStorefrontContent();
+  const brandContent = { ...defaultContent, ...content.brand_story };
+  const brandStoryImg = brandContent.image_url || brandStoryImgDefault;
+  const stats = brandContent.stats || defaultContent.stats;
+
   const values = [
     { icon: Award, label: "Premium Quality", color: "text-coral bg-coral/10" },
     { icon: Heart, label: "Made with Love", color: "text-teal bg-teal/10" },
     { icon: Leaf, label: "Sustainable", color: "text-gold-dark bg-gold/10" },
-  ];
-
-  const stats = [
-    { value: "500+", label: "Unique Designs" },
-    { value: "50+", label: "Artisan Partners" },
-    { value: "15K+", label: "Happy Customers" },
   ];
 
   return (
@@ -91,7 +106,7 @@ const BrandStory = () => {
                 viewport={{ once: true }}
                 transition={{ delay: 0.6, type: "spring", stiffness: 200 }}
               >
-                5+
+                {brandContent.years_of_excellence}
               </motion.p>
               <p className="font-body text-sm">Years of Excellence</p>
             </motion.div>
@@ -123,7 +138,7 @@ const BrandStory = () => {
                 viewport={{ once: true }}
                 transition={{ duration: 0.5 }}
               >
-                Our Story
+                {brandContent.badge}
               </motion.span>
             </ScrollReveal>
             
@@ -135,7 +150,7 @@ const BrandStory = () => {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.1 }}
               >
-                Crafting Elegance,
+                {brandContent.title_line1}
                 <motion.span 
                   className="text-gradient block"
                   initial={{ opacity: 0, x: -30 }}
@@ -143,7 +158,7 @@ const BrandStory = () => {
                   viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: 0.3 }}
                 >
-                  One Stitch at a Time
+                  {brandContent.title_line2}
                 </motion.span>
               </motion.h2>
             </ScrollReveal>
@@ -156,9 +171,7 @@ const BrandStory = () => {
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: 0.2 }}
                 >
-                  Born from a passion for preserving India's rich textile heritage, 
-                  Aroma Ethnic brings you handcrafted pieces that tell stories of 
-                  tradition and artisanship.
+                  {brandContent.paragraph1}
                 </motion.p>
                 <motion.p
                   initial={{ opacity: 0, y: 20 }}
@@ -166,10 +179,7 @@ const BrandStory = () => {
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: 0.3 }}
                 >
-                  Each kurthi and dress in our collection is thoughtfully designed, 
-                  combining age-old techniques with contemporary aesthetics. We work 
-                  directly with skilled artisans across India, ensuring fair practices 
-                  and authentic craftsmanship.
+                  {brandContent.paragraph2}
                 </motion.p>
               </div>
             </ScrollReveal>

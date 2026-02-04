@@ -1,10 +1,34 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Star, Sparkles } from "lucide-react";
-import heroModel from "@/assets/hero-model.jpg";
+import heroModelDefault from "@/assets/hero-model.jpg";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
+import { useStorefrontContent, HeroContent } from "@/hooks/useStorefrontContent";
+
+const defaultContent: HeroContent = {
+  badge: "New Collection 2026",
+  title_line1: "Where Tradition",
+  title_line2: "Meets Style",
+  description: "Discover our exquisite collection of handcrafted ethnic wear — where every stitch tells a story of artistry and elegance.",
+  cta_primary: "Shop Collection",
+  cta_secondary: "View Lookbook",
+  starting_price: "₹999",
+  discount_text: "UPTO 40% OFF",
+  stats: [
+    { value: "500+", label: "Designs" },
+    { value: "15K+", label: "Happy Customers" },
+    { value: "4.9★", label: "Rating" },
+    { value: "50+", label: "Artisan Partners" },
+  ],
+  image_url: "",
+};
 
 const Hero = () => {
+  const { content } = useStorefrontContent();
+  const heroContent = { ...defaultContent, ...content.hero };
+  const heroModel = heroContent.image_url || heroModelDefault;
+  const stats = heroContent.stats || defaultContent.stats;
+  
   const heroRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -84,7 +108,7 @@ const Hero = () => {
                 <Sparkles className="w-4 h-4 text-secondary" />
               </motion.div>
               <span className="font-body text-sm tracking-wider uppercase text-secondary font-medium">
-                New Collection 2026
+                {heroContent.badge}
               </span>
             </motion.div>
             
@@ -94,14 +118,14 @@ const Hero = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              Where Tradition
+              {heroContent.title_line1}
               <motion.span 
                 className="block text-gradient"
                 initial={{ opacity: 0, x: -30 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8, delay: 0.5 }}
               >
-                Meets Style
+                {heroContent.title_line2}
               </motion.span>
             </motion.h1>
             
@@ -111,8 +135,7 @@ const Hero = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
             >
-              Discover our exquisite collection of handcrafted ethnic wear — 
-              where every stitch tells a story of artistry and elegance.
+              {heroContent.description}
             </motion.p>
 
             <motion.div 
@@ -132,7 +155,7 @@ const Hero = () => {
                     transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
                   />
                   <span className="relative z-10 flex items-center">
-                    Shop Collection
+                    {heroContent.cta_primary}
                     <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                   </span>
                 </Button>
@@ -143,7 +166,7 @@ const Hero = () => {
                   size="lg" 
                   className="border-secondary text-secondary hover:bg-secondary hover:text-secondary-foreground font-body font-semibold text-base px-8"
                 >
-                  View Lookbook
+                  {heroContent.cta_secondary}
                 </Button>
               </motion.div>
             </motion.div>
@@ -220,7 +243,7 @@ const Hero = () => {
                 whileHover={{ scale: 1.05, rotate: -2 }}
               >
                 <p className="font-body text-xs tracking-wider uppercase opacity-80">Starting from</p>
-                <p className="font-display text-3xl font-bold">₹999</p>
+                <p className="font-display text-3xl font-bold">{heroContent.starting_price}</p>
               </motion.div>
               
               {/* Floating discount badge */}
@@ -236,7 +259,7 @@ const Hero = () => {
                   animate={{ scale: [1, 1.05, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
-                  UPTO 40% OFF
+                  {heroContent.discount_text}
                 </motion.p>
               </motion.div>
               
@@ -265,20 +288,14 @@ const Hero = () => {
       >
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-center gap-8 md:gap-16 text-center">
-            {[
-              { value: "500+", label: "Designs" },
-              { value: "15K+", label: "Happy Customers" },
-              { value: "4.9★", label: "Rating" },
-              { value: "50+", label: "Artisan Partners", hideOnMobile: true },
-            ].map((stat, index) => (
+            {stats.map((stat, index) => (
               <motion.div 
                 key={stat.label}
-                className={stat.hideOnMobile ? "hidden md:block" : ""}
+                className={index === 3 ? "hidden md:block" : ""}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1.2 + index * 0.1 }}
               >
-                {index > 0 && <div className="hidden" />}
                 <p className="font-display text-2xl md:text-3xl font-bold text-foreground">{stat.value}</p>
                 <p className="font-body text-xs text-muted-foreground tracking-wide">{stat.label}</p>
               </motion.div>
