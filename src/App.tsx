@@ -30,6 +30,7 @@ import AdminPayments from "./pages/admin/AdminPayments";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminStorefront from "./pages/admin/AdminStorefront";
+import AdminDiscounts from "./pages/admin/AdminDiscounts";
 import AdminLogin from "./pages/admin/AdminLogin";
 
 const queryClient = new QueryClient();
@@ -64,6 +65,7 @@ const AppContent = () => {
             <Route path="storefront" element={<AdminStorefront />} />
             <Route path="products" element={<AdminProducts />} />
             <Route path="orders" element={<AdminOrders />} />
+            <Route path="discounts" element={<AdminDiscounts />} />
             <Route path="menus" element={<AdminMenus />} />
             <Route path="banners" element={<AdminBanners />} />
             <Route path="payments" element={<AdminPayments />} />
