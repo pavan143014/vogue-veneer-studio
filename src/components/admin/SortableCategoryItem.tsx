@@ -84,17 +84,26 @@ export function SortableCategoryItem({
           )}
         </button>
 
+        {/* Category image */}
+        {category.image_url ? (
+          <img 
+            src={category.image_url} 
+            alt={category.name}
+            className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+          />
+        ) : (
+          <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+            <span className="text-xs font-medium text-muted-foreground">
+              {category.name.charAt(0).toUpperCase()}
+            </span>
+          </div>
+        )}
+
         {/* Category info */}
         <div className="flex-1 min-w-0">
           <p className="font-body font-medium text-foreground">{category.name}</p>
           <p className="text-xs text-muted-foreground">/category/{category.slug}</p>
         </div>
-
-        {hasChildren && (
-          <span className="px-2 py-0.5 bg-primary/10 text-primary rounded text-xs font-medium">
-            {category.children.length} subcategories
-          </span>
-        )}
 
         {/* Actions */}
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
