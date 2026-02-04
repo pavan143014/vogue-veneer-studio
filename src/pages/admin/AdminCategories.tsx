@@ -15,37 +15,34 @@ import {
   Plus,
   Loader2,
   FolderTree,
-  Upload,
   X,
   Image as ImageIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
   DndContext,
+  DragOverlay,
   closestCenter,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
+  DragStartEvent,
   DragEndEvent,
 } from "@dnd-kit/core";
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
-import { SortableCategoryItem } from "@/components/admin/SortableCategoryItem";
+import { DraggableCategoryItem } from "@/components/admin/DraggableCategoryItem";
+import { CategoryDropZone } from "@/components/admin/CategoryDropZone";
 import { supabase } from "@/integrations/supabase/client";
 
 const AdminCategories = () => {
-  const { categoryTree, categories, loading, createCategory, updateCategory, deleteCategory, reorderCategories } = useCategories();
+  const { categoryTree, categories, loading, createCategory, updateCategory, deleteCategory, reorderCategories, moveCategory } = useCategories();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<CategoryWithChildren | null>(null);
   const [parentCategory, setParentCategory] = useState<CategoryWithChildren | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -60,9 +57,7 @@ const AdminCategories = () => {
         distance: 8,
       },
     }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
+    useSensor(KeyboardSensor)
   );
 
   const generateSlug = (name: string) => {
@@ -196,64 +191,115 @@ const AdminCategories = () => {
     });
   };
 
-  const handleDragEnd = useCallback(async (event: DragEndEvent, parentId: string | null) => {
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
+
+  const handleDragEnd = useCallback(async (event: DragEndEvent) => {
     const { active, over } = event;
-    
+    setActiveId(null);
+
     if (!over || active.id === over.id) return;
 
-    // Get siblings at this level
-    const siblings = parentId 
-      ? categories.filter(c => c.parent_id === parentId)
-      : categories.filter(c => c.parent_id === null);
-    
-    const orderedIds = siblings
-      .sort((a, b) => a.position - b.position)
-      .map(c => c.id);
+    const draggedId = active.id as string;
+    const overId = over.id as string;
 
-    const oldIndex = orderedIds.indexOf(active.id as string);
-    const newIndex = orderedIds.indexOf(over.id as string);
+    // Check if dropping into a category to make it a child
+    if (overId.startsWith("drop-into-")) {
+      const targetParentId = overId.replace("drop-into-", "");
+      
+      // Prevent dropping a category into itself or its own descendants
+      const isDescendant = (parentId: string, childId: string): boolean => {
+        const children = categories.filter(c => c.parent_id === parentId);
+        if (children.some(c => c.id === childId)) return true;
+        return children.some(c => isDescendant(c.id, childId));
+      };
 
-    if (oldIndex === -1 || newIndex === -1) return;
+      if (draggedId === targetParentId || isDescendant(draggedId, targetParentId)) {
+        toast.error("Cannot move a category into its own subcategory");
+        return;
+      }
 
-    // Reorder the array
-    const newOrder = [...orderedIds];
-    newOrder.splice(oldIndex, 1);
-    newOrder.splice(newIndex, 0, active.id as string);
+      const draggedCategory = categories.find(c => c.id === draggedId);
+      if (draggedCategory?.parent_id === targetParentId) {
+        return; // Already a child of this parent
+      }
 
-    await reorderCategories(parentId, newOrder);
-    toast.success("Categories reordered");
-  }, [categories, reorderCategories]);
+      const { error } = await moveCategory(draggedId, targetParentId);
+      if (error) {
+        toast.error("Failed to move category");
+      } else {
+        toast.success("Category moved");
+        // Auto-expand the parent to show the moved category
+        setExpandedCategories(prev => new Set([...prev, targetParentId]));
+      }
+      return;
+    }
 
-  const renderSortableCategories = useCallback((cats: CategoryWithChildren[], depth: number = 0, parentId: string | null = null) => {
-    const ids = cats.map(c => c.id);
+    // Check if dropping to root level
+    if (overId === "drop-to-root") {
+      const draggedCategory = categories.find(c => c.id === draggedId);
+      if (draggedCategory?.parent_id === null) {
+        return; // Already at root
+      }
 
+      const { error } = await moveCategory(draggedId, null);
+      if (error) {
+        toast.error("Failed to move category");
+      } else {
+        toast.success("Category moved to root level");
+      }
+      return;
+    }
+
+    // Same-level reordering
+    const draggedCategory = categories.find(c => c.id === draggedId);
+    const overCategory = categories.find(c => c.id === overId);
+
+    if (!draggedCategory || !overCategory) return;
+
+    // Only reorder if they share the same parent
+    if (draggedCategory.parent_id === overCategory.parent_id) {
+      const parentId = draggedCategory.parent_id;
+      const siblings = categories
+        .filter(c => c.parent_id === parentId)
+        .sort((a, b) => a.position - b.position);
+
+      const oldIndex = siblings.findIndex(c => c.id === draggedId);
+      const newIndex = siblings.findIndex(c => c.id === overId);
+
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      const newOrder = siblings.map(c => c.id);
+      newOrder.splice(oldIndex, 1);
+      newOrder.splice(newIndex, 0, draggedId);
+
+      await reorderCategories(parentId, newOrder);
+      toast.success("Categories reordered");
+    }
+  }, [categories, reorderCategories, moveCategory]);
+
+  const activeCategory = activeId ? categories.find(c => c.id === activeId) : null;
+
+  const renderCategories = useCallback((cats: CategoryWithChildren[], depth: number = 0) => {
     return (
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        modifiers={[restrictToVerticalAxis]}
-        onDragEnd={(event) => handleDragEnd(event, parentId)}
-      >
-        <SortableContext items={ids} strategy={verticalListSortingStrategy}>
-          <div className="space-y-2">
-            {cats.map(category => (
-              <SortableCategoryItem
-                key={category.id}
-                category={category}
-                depth={depth}
-                isExpanded={expandedCategories.has(category.id)}
-                onToggleExpand={toggleExpand}
-                onAddSubcategory={handleAddCategory}
-                onEdit={handleEditCategory}
-                onDelete={handleDelete}
-                renderChildren={(children, d) => renderSortableCategories(children, d, category.id)}
-              />
-            ))}
-          </div>
-        </SortableContext>
-      </DndContext>
+      <div className="space-y-2">
+        {cats.map(category => (
+          <DraggableCategoryItem
+            key={category.id}
+            category={category}
+            depth={depth}
+            isExpanded={expandedCategories.has(category.id)}
+            onToggleExpand={toggleExpand}
+            onAddSubcategory={handleAddCategory}
+            onEdit={handleEditCategory}
+            onDelete={handleDelete}
+            renderChildren={(children, d) => renderCategories(children, d)}
+          />
+        ))}
+      </div>
     );
-  }, [sensors, expandedCategories, handleDragEnd]);
+  }, [expandedCategories]);
 
   if (loading) {
     return (
@@ -286,7 +332,7 @@ const AdminCategories = () => {
         <CardHeader>
           <CardTitle className="font-display text-xl">Category Tree</CardTitle>
           <CardDescription>
-            Drag to reorder • Click + to add subcategories • Click arrow to expand
+            Drag to reorder • Drop onto a category to nest • Drop on "Root Level" to un-nest
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -305,7 +351,46 @@ const AdminCategories = () => {
               </Button>
             </div>
           ) : (
-            renderSortableCategories(categoryTree, 0, null)
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+            >
+              <div className="space-y-4">
+                {/* Root level drop zone */}
+                <CategoryDropZone
+                  id="drop-to-root"
+                  label="Drop here to move to root level"
+                  className="mb-4"
+                />
+                
+                {renderCategories(categoryTree, 0)}
+              </div>
+
+              <DragOverlay>
+                {activeCategory && (
+                  <div className="p-3 rounded-xl bg-background border-2 border-primary shadow-lg">
+                    <div className="flex items-center gap-3">
+                      {activeCategory.image_url ? (
+                        <img
+                          src={activeCategory.image_url}
+                          alt={activeCategory.name}
+                          className="w-10 h-10 rounded-lg object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                          <span className="text-xs font-medium text-muted-foreground">
+                            {activeCategory.name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                      )}
+                      <span className="font-medium">{activeCategory.name}</span>
+                    </div>
+                  </div>
+                )}
+              </DragOverlay>
+            </DndContext>
           )}
         </CardContent>
       </Card>
