@@ -122,7 +122,12 @@ const AdminCategories = () => {
   const handleEditCategory = (category: CategoryWithChildren) => {
     setEditingCategory(category);
     setParentCategory(null);
-    setFormData({ name: category.name, slug: category.slug });
+    setFormData({ 
+      name: category.name, 
+      slug: category.slug,
+      description: category.description || "",
+      image_url: category.image_url || "",
+    });
     setIsDialogOpen(true);
   };
 
