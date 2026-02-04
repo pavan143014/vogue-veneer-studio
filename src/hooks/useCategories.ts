@@ -153,6 +153,31 @@ export function useCategories() {
     });
   };
 
+  const moveCategory = async (categoryId: string, newParentId: string | null) => {
+    // Get the max position at the new level
+    const siblingsAtNewLevel = categories.filter(c => c.parent_id === newParentId);
+    const maxPosition = siblingsAtNewLevel.reduce((max, c) => Math.max(max, c.position), -1);
+
+    const { error } = await supabase
+      .from('categories')
+      .update({ 
+        parent_id: newParentId, 
+        position: maxPosition + 1 
+      })
+      .eq('id', categoryId);
+
+    if (!error) {
+      setCategories(prev => 
+        prev.map(c => 
+          c.id === categoryId 
+            ? { ...c, parent_id: newParentId, position: maxPosition + 1 } 
+            : c
+        )
+      );
+    }
+    return { error };
+  };
+
   return {
     categories,
     categoryTree: getCategoryTree(),
@@ -162,5 +187,6 @@ export function useCategories() {
     updateCategory,
     deleteCategory,
     reorderCategories,
+    moveCategory,
   };
 }
