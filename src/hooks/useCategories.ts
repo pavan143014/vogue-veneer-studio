@@ -8,6 +8,8 @@ export interface Category {
   parent_id: string | null;
   position: number;
   is_active: boolean;
+  image_url: string | null;
+  description: string | null;
   created_at: string;
   updated_at: string;
 }
