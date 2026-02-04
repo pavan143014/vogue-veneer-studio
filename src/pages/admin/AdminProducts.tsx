@@ -34,6 +34,7 @@ import {
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { MultiImageUpload } from "@/components/admin/ImageUpload";
+import { CategorySelect } from "@/components/admin/CategorySelect";
 
 const AdminProducts = () => {
   const { products, loading, createProduct, updateProduct, deleteProduct } =
@@ -198,13 +199,12 @@ const AdminProducts = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="category">Category</Label>
-                  <Input
-                    id="category"
+                  <CategorySelect
                     value={formData.category}
-                    onChange={(e) =>
-                      setFormData({ ...formData, category: e.target.value })
+                    onChange={(value) =>
+                      setFormData({ ...formData, category: value })
                     }
-                    placeholder="e.g., Sarees, Kurtis"
+                    placeholder="Select a category"
                   />
                 </div>
               </div>

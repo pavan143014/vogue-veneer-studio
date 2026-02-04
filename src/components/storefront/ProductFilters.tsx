@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { motion, AnimatePresence } from "framer-motion";
+import { useCategories, CategoryWithChildren } from "@/hooks/useCategories";
 
 export interface FilterState {
   priceRange: [number, number];
@@ -17,15 +18,6 @@ interface ProductFiltersProps {
   maxPrice?: number;
 }
 
-const categories = [
-  { id: "kurthis", label: "Kurthis" },
-  { id: "dresses", label: "Dresses" },
-  { id: "festive", label: "Festive Wear" },
-  { id: "casual", label: "Casual Wear" },
-  { id: "silk", label: "Silk Collection" },
-  { id: "cotton", label: "Cotton Collection" },
-];
-
 const sortOptions = [
   { value: "relevance", label: "Relevance" },
   { value: "price-low", label: "Price: Low to High" },
@@ -36,6 +28,9 @@ const sortOptions = [
 const ProductFilters = ({ filters, onFilterChange, maxPrice = 5000 }: ProductFiltersProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [expandedSections, setExpandedSections] = useState<string[]>(["price", "categories"]);
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  
+  const { categoryTree, loading: categoriesLoading } = useCategories();
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) =>
@@ -43,14 +38,26 @@ const ProductFilters = ({ filters, onFilterChange, maxPrice = 5000 }: ProductFil
     );
   };
 
+  const toggleCategoryExpand = (categoryId: string) => {
+    setExpandedCategories(prev => {
+      const next = new Set(prev);
+      if (next.has(categoryId)) {
+        next.delete(categoryId);
+      } else {
+        next.add(categoryId);
+      }
+      return next;
+    });
+  };
+
   const handlePriceChange = (value: number[]) => {
     onFilterChange({ ...filters, priceRange: [value[0], value[1]] });
   };
 
-  const handleCategoryToggle = (categoryId: string) => {
-    const newCategories = filters.categories.includes(categoryId)
-      ? filters.categories.filter((c) => c !== categoryId)
-      : [...filters.categories, categoryId];
+  const handleCategoryToggle = (categorySlug: string) => {
+    const newCategories = filters.categories.includes(categorySlug)
+      ? filters.categories.filter((c) => c !== categorySlug)
+      : [...filters.categories, categorySlug];
     onFilterChange({ ...filters, categories: newCategories });
   };
 
@@ -71,6 +78,61 @@ const ProductFilters = ({ filters, onFilterChange, maxPrice = 5000 }: ProductFil
     filters.priceRange[0] > 0 ||
     filters.priceRange[1] < maxPrice ||
     filters.sortBy !== "relevance";
+
+  // Render category with children recursively
+  const renderCategory = (category: CategoryWithChildren, depth: number = 0) => {
+    const hasChildren = category.children.length > 0;
+    const isExpanded = expandedCategories.has(category.id);
+
+    return (
+      <div key={category.id} className="space-y-1">
+        <div className={`flex items-center gap-2 ${depth > 0 ? "ml-4" : ""}`}>
+          {hasChildren && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                toggleCategoryExpand(category.id);
+              }}
+              className="p-0.5 rounded hover:bg-muted transition-colors"
+            >
+              <ChevronDown 
+                className={`w-3 h-3 text-muted-foreground transition-transform ${
+                  isExpanded ? "rotate-0" : "-rotate-90"
+                }`} 
+              />
+            </button>
+          )}
+          <label
+            className={`flex items-center gap-3 cursor-pointer group flex-1 ${!hasChildren ? "ml-5" : ""}`}
+          >
+            <Checkbox
+              checked={filters.categories.includes(category.slug)}
+              onCheckedChange={() => handleCategoryToggle(category.slug)}
+              className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+            />
+            <span className="font-body text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+              {category.name}
+            </span>
+          </label>
+        </div>
+        
+        {/* Children */}
+        <AnimatePresence>
+          {hasChildren && isExpanded && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="space-y-1"
+            >
+              {category.children.map(child => renderCategory(child, depth + 1))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-4">
@@ -219,21 +281,17 @@ const ProductFilters = ({ filters, onFilterChange, maxPrice = 5000 }: ProductFil
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
                   >
-                    {categories.map((category) => (
-                      <label
-                        key={category.id}
-                        className="flex items-center gap-3 cursor-pointer group"
-                      >
-                        <Checkbox
-                          checked={filters.categories.includes(category.id)}
-                          onCheckedChange={() => handleCategoryToggle(category.id)}
-                          className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                        />
-                        <span className="font-body text-sm text-muted-foreground group-hover:text-foreground transition-colors">
-                          {category.label}
-                        </span>
-                      </label>
-                    ))}
+                    {categoriesLoading ? (
+                      <div className="space-y-2">
+                        {[1, 2, 3].map((i) => (
+                          <div key={i} className="h-6 bg-muted animate-pulse rounded" />
+                        ))}
+                      </div>
+                    ) : categoryTree.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">No categories available</p>
+                    ) : (
+                      categoryTree.map((category) => renderCategory(category))
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
