@@ -5,7 +5,8 @@ import Footer from "@/components/storefront/Footer";
 import ProductCard from "@/components/storefront/ProductCard";
 import ProductSearch from "@/components/storefront/ProductSearch";
 import ProductFilters, { FilterState } from "@/components/storefront/ProductFilters";
-import { products } from "@/data/products";
+import { useAdminProducts } from "@/hooks/useAdminProducts";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ShoppingBag, Sparkles, Grid3X3, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
@@ -22,24 +23,36 @@ const Shop = () => {
     sortBy: "relevance",
   });
 
+  // Fetch products from database
+  const { products: adminProducts, loading } = useAdminProducts();
+
+  // Calculate max price from products
+  const maxPrice = useMemo(() => {
+    if (adminProducts.length === 0) return 10000;
+    return Math.max(...adminProducts.map(p => p.price), 10000);
+  }, [adminProducts]);
+
   // Filter and sort products
   const filteredProducts = useMemo(() => {
-    let result = [...products];
+    let result = [...adminProducts];
     
     // Search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(product => 
-        product.name.toLowerCase().includes(query) ||
-        product.category.toLowerCase().includes(query) ||
-        product.description.toLowerCase().includes(query)
+        product.title.toLowerCase().includes(query) ||
+        (product.category?.toLowerCase().includes(query)) ||
+        (product.description?.toLowerCase().includes(query)) ||
+        (product.tags?.some(tag => tag.toLowerCase().includes(query)))
       );
     }
     
     // Category filter
     if (filters.categories.length > 0) {
       result = result.filter(product => 
-        filters.categories.includes(product.category)
+        product.category && filters.categories.some(cat => 
+          product.category?.toLowerCase().includes(cat.toLowerCase())
+        )
       );
     }
     
@@ -57,12 +70,12 @@ const Shop = () => {
         result.sort((a, b) => b.price - a.price);
         break;
       case "newest":
-        result = result.filter(p => p.isNew).concat(result.filter(p => !p.isNew));
+        result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         break;
     }
     
     return result;
-  }, [searchQuery, filters]);
+  }, [searchQuery, filters, adminProducts]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -140,7 +153,7 @@ const Shop = () => {
                 <ProductFilters 
                   filters={filters} 
                   onFilterChange={setFilters}
-                  maxPrice={10000}
+                  maxPrice={maxPrice}
                 />
               </aside>
               
@@ -154,9 +167,15 @@ const Shop = () => {
                   transition={{ delay: 0.4 }}
                 >
                   <div className="font-body text-muted-foreground">
-                    Showing <span className="text-foreground font-medium">{filteredProducts.length}</span> products
-                    {searchQuery && (
-                      <span className="text-foreground"> for "{searchQuery}"</span>
+                    {loading ? (
+                      <Skeleton className="h-5 w-32" />
+                    ) : (
+                      <>
+                        Showing <span className="text-foreground font-medium">{filteredProducts.length}</span> products
+                        {searchQuery && (
+                          <span className="text-foreground"> for "{searchQuery}"</span>
+                        )}
+                      </>
                     )}
                   </div>
                   
@@ -180,8 +199,25 @@ const Shop = () => {
                   </div>
                 </motion.div>
 
+                {/* Loading State */}
+                {loading && (
+                  <div className={`grid gap-4 md:gap-6 ${
+                    gridView === "grid" 
+                      ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-3" 
+                      : "grid-cols-1 md:grid-cols-2"
+                  }`}>
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <div key={i} className="space-y-3">
+                        <Skeleton className="aspect-[3/4] rounded-2xl" />
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-4 w-1/2" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 {/* Empty State */}
-                {filteredProducts.length === 0 && (
+                {!loading && filteredProducts.length === 0 && (
                   <motion.div 
                     className="text-center py-20 bg-card rounded-3xl border-2 border-dashed border-border"
                     initial={{ opacity: 0, y: 20 }}
@@ -205,7 +241,7 @@ const Shop = () => {
                     <Button 
                       onClick={() => {
                         setSearchQuery("");
-                        setFilters({ priceRange: [0, 10000], categories: [], sortBy: "relevance" });
+                        setFilters({ priceRange: [0, maxPrice], categories: [], sortBy: "relevance" });
                         setSearchParams({});
                       }}
                       className="bg-primary hover:bg-primary/90"
@@ -216,7 +252,7 @@ const Shop = () => {
                 )}
 
                 {/* Products Grid */}
-                {filteredProducts.length > 0 && (
+                {!loading && filteredProducts.length > 0 && (
                   <motion.div 
                     className={`grid gap-4 md:gap-6 ${
                       gridView === "grid" 
@@ -247,13 +283,13 @@ const Shop = () => {
                       >
                         <ProductCard 
                           id={product.id}
-                          name={product.name}
+                          name={product.title}
                           price={product.price}
-                          originalPrice={product.originalPrice}
-                          image={product.image}
-                          category={product.category}
-                          isNew={product.isNew}
-                          isSale={product.isSale}
+                          originalPrice={product.compare_at_price || undefined}
+                          image={product.images?.[0] || "/placeholder.svg"}
+                          category={product.category || "Uncategorized"}
+                          isNew={new Date(product.created_at).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000}
+                          isSale={!!product.compare_at_price && product.compare_at_price > product.price}
                         />
                       </motion.div>
                     ))}
