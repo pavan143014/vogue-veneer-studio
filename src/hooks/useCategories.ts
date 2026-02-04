@@ -187,5 +187,6 @@ export function useCategories() {
     updateCategory,
     deleteCategory,
     reorderCategories,
+    moveCategory,
   };
 }
