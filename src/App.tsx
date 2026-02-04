@@ -8,6 +8,7 @@ import LocalCartDrawer from "@/components/storefront/LocalCartDrawer";
 import MobileBottomNav from "@/components/storefront/MobileBottomNav";
 import Index from "./pages/Index";
 import Shop from "./pages/Shop";
+import Category from "./pages/Category";
 import ProductDetail from "./pages/ProductDetail";
 import AdminProductDetail from "./pages/AdminProductDetail";
 import OrderConfirmation from "./pages/OrderConfirmation";
@@ -49,6 +50,7 @@ const AppContent = () => {
           {/* Storefront Routes */}
           <Route path="/" element={<><MobileBottomNav /><div className="pb-16 md:pb-0"><Index /></div></>} />
           <Route path="/shop" element={<><MobileBottomNav /><div className="pb-16 md:pb-0"><Shop /></div></>} />
+          <Route path="/category/:slug" element={<><MobileBottomNav /><div className="pb-16 md:pb-0"><Category /></div></>} />
           <Route path="/product/:handle" element={<><MobileBottomNav /><div className="pb-16 md:pb-0"><ProductDetail /></div></>} />
           <Route path="/p/:id" element={<><MobileBottomNav /><div className="pb-16 md:pb-0"><AdminProductDetail /></div></>} />
           <Route path="/checkout" element={<><MobileBottomNav /><div className="pb-16 md:pb-0"><Checkout /></div></>} />

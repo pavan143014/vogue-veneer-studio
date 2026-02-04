@@ -9,6 +9,7 @@ import WishlistDrawer from "./WishlistDrawer";
 import UserMenu from "@/components/auth/UserMenu";
 import { DynamicNav } from "./DynamicNav";
 import { useNavigationMenu } from "@/hooks/useNavigationMenu";
+import { CategoryNav, MobileCategoryNav } from "./CategoryNav";
 
 const promoMessages = [
   { icon: Sparkles, text: "✨ Free Shipping on Orders Above ₹999 ✨" },
@@ -157,6 +158,9 @@ const Header = () => {
                 Shop All
               </Link>
             </motion.div>
+
+            {/* Categories Dropdown */}
+            <CategoryNav />
 
             {/* Track Order Link */}
             <motion.div
@@ -399,6 +403,9 @@ const Header = () => {
                 </Link>
               </motion.div>
               
+              {/* Category Navigation */}
+              <MobileCategoryNav onClose={() => setIsMenuOpen(false)} />
+
               <motion.div
                 className="border-b border-border/30"
                 initial={{ opacity: 0, x: -20 }}
