@@ -8,6 +8,7 @@ import LocalCartDrawer from "@/components/storefront/LocalCartDrawer";
 import MobileBottomNav from "@/components/storefront/MobileBottomNav";
 import Index from "./pages/Index";
 import Shop from "./pages/Shop";
+import Category from "./pages/Category";
 import ProductDetail from "./pages/ProductDetail";
 import AdminProductDetail from "./pages/AdminProductDetail";
 import OrderConfirmation from "./pages/OrderConfirmation";
