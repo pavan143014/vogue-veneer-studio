@@ -47,12 +47,10 @@ const Shop = () => {
       );
     }
     
-    // Category filter
+    // Category filter - match by slug (stored in product.category)
     if (filters.categories.length > 0) {
       result = result.filter(product => 
-        product.category && filters.categories.some(cat => 
-          product.category?.toLowerCase().includes(cat.toLowerCase())
-        )
+        product.category && filters.categories.includes(product.category)
       );
     }
     
