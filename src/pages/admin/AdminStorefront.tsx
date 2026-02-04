@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { ImageUpload } from "@/components/admin/ImageUpload";
+import { StorageGallery } from "@/components/admin/StorageGallery";
 
 const AdminStorefront = () => {
   const { sections, loading, updateSection, toggleSection } = useAdminStorefrontContent();
