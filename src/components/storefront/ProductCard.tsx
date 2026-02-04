@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Heart, Eye, ShoppingBag, Plus, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -37,6 +38,7 @@ const ProductCard = ({
   sizes = ["S", "M", "L", "XL"],
   colors = []
 }: ProductCardProps) => {
+  const navigate = useNavigate();
   const [isLiked, setIsLiked] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
@@ -103,7 +105,14 @@ const ProductCard = ({
         className="group relative bg-card rounded-xl overflow-hidden border border-border hover:border-primary/30 transition-all duration-300 hover:shadow-xl cursor-pointer"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        onClick={() => setIsQuickViewOpen(true)}
+        onClick={() => {
+          // Navigate to product detail page if id is provided
+          if (id) {
+            navigate(`/p/${id}`);
+          } else {
+            setIsQuickViewOpen(true);
+          }
+        }}
       >
         {/* Image Container */}
         <div className="relative aspect-[3/4] bg-gradient-to-br from-cream-dark to-muted overflow-hidden">
