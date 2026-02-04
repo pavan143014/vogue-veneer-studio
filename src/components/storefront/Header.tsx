@@ -9,6 +9,7 @@ import WishlistDrawer from "./WishlistDrawer";
 import UserMenu from "@/components/auth/UserMenu";
 import { DynamicNav } from "./DynamicNav";
 import { useNavigationMenu } from "@/hooks/useNavigationMenu";
+import { CategoryNav, MobileCategoryNav } from "./CategoryNav";
 
 const promoMessages = [
   { icon: Sparkles, text: "✨ Free Shipping on Orders Above ₹999 ✨" },
