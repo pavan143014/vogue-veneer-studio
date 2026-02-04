@@ -70,6 +70,7 @@ const AppContent = () => {
             <Route path="orders" element={<AdminOrders />} />
             <Route path="discounts" element={<AdminDiscounts />} />
             <Route path="menus" element={<AdminMenus />} />
+            <Route path="categories" element={<AdminCategories />} />
             <Route path="banners" element={<AdminBanners />} />
             <Route path="payments" element={<AdminPayments />} />
             <Route path="settings" element={<AdminSettings />} />
