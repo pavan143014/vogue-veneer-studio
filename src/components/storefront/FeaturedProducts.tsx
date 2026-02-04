@@ -1,11 +1,13 @@
-import ProductCard from "./ProductCard";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles } from "lucide-react";
-import { products } from "@/data/products";
+import { ArrowRight, Sparkles, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { useAdminProducts } from "@/hooks/useAdminProducts";
+import AdminProductCard from "./AdminProductCard";
 
 const FeaturedProducts = () => {
+  const { products, loading } = useAdminProducts(8);
+
   return (
     <section className="py-16 md:py-24 bg-muted/30" id="new">
       <div className="container mx-auto px-4">
@@ -56,46 +58,47 @@ const FeaturedProducts = () => {
         </motion.div>
 
         {/* Products Grid */}
-        <motion.div 
-          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-50px" }}
-          variants={{
-            hidden: {},
-            visible: {
-              transition: {
-                staggerChildren: 0.08
-              }
-            }
-          }}
-        >
-          {products.slice(0, 8).map((product) => (
-            <motion.div
-              key={product.id}
-              variants={{
-                hidden: { opacity: 0, y: 30, scale: 0.95 },
-                visible: { 
-                  opacity: 1, 
-                  y: 0, 
-                  scale: 1,
-                  transition: { duration: 0.5, ease: "easeOut" }
+        {loading ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : products.length === 0 ? (
+          <div className="text-center py-16">
+            <p className="font-body text-muted-foreground">No products available yet. Add products from the admin panel.</p>
+          </div>
+        ) : (
+          <motion.div 
+            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-50px" }}
+            variants={{
+              hidden: {},
+              visible: {
+                transition: {
+                  staggerChildren: 0.08
                 }
-              }}
-            >
-              <ProductCard 
-                id={product.id}
-                name={product.name}
-                price={product.price}
-                originalPrice={product.originalPrice}
-                image={product.image}
-                category={product.category}
-                isNew={product.isNew}
-                isSale={product.isSale}
-              />
-            </motion.div>
-          ))}
-        </motion.div>
+              }
+            }}
+          >
+            {products.map((product) => (
+              <motion.div
+                key={product.id}
+                variants={{
+                  hidden: { opacity: 0, y: 30, scale: 0.95 },
+                  visible: { 
+                    opacity: 1, 
+                    y: 0, 
+                    scale: 1,
+                    transition: { duration: 0.5, ease: "easeOut" }
+                  }
+                }}
+              >
+                <AdminProductCard product={product} />
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
 
         {/* Newsletter CTA Banner */}
         <motion.div 
