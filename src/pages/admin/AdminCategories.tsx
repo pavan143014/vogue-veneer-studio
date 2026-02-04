@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useCategories, CategoryWithChildren } from "@/hooks/useCategories";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,19 +12,29 @@ import {
 } from "@/components/ui/dialog";
 import {
   Plus,
-  Edit2,
-  Trash2,
   Loader2,
   FolderTree,
-  ChevronRight,
-  ChevronDown,
-  GripVertical,
 } from "lucide-react";
 import { toast } from "sonner";
-import { motion, AnimatePresence } from "framer-motion";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
+import { SortableCategoryItem } from "@/components/admin/SortableCategoryItem";
 
 const AdminCategories = () => {
-  const { categoryTree, loading, createCategory, updateCategory, deleteCategory } = useCategories();
+  const { categoryTree, categories, loading, createCategory, updateCategory, deleteCategory, reorderCategories } = useCategories();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<CategoryWithChildren | null>(null);
   const [parentCategory, setParentCategory] = useState<CategoryWithChildren | null>(null);
@@ -35,6 +45,17 @@ const AdminCategories = () => {
     name: "",
     slug: "",
   });
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const generateSlug = (name: string) => {
     return name
@@ -125,98 +146,64 @@ const AdminCategories = () => {
     });
   };
 
-  const renderCategory = (category: CategoryWithChildren, depth: number = 0) => {
-    const hasChildren = category.children.length > 0;
-    const isExpanded = expandedCategories.has(category.id);
+  const handleDragEnd = useCallback(async (event: DragEndEvent, parentId: string | null) => {
+    const { active, over } = event;
+    
+    if (!over || active.id === over.id) return;
+
+    // Get siblings at this level
+    const siblings = parentId 
+      ? categories.filter(c => c.parent_id === parentId)
+      : categories.filter(c => c.parent_id === null);
+    
+    const orderedIds = siblings
+      .sort((a, b) => a.position - b.position)
+      .map(c => c.id);
+
+    const oldIndex = orderedIds.indexOf(active.id as string);
+    const newIndex = orderedIds.indexOf(over.id as string);
+
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    // Reorder the array
+    const newOrder = [...orderedIds];
+    newOrder.splice(oldIndex, 1);
+    newOrder.splice(newIndex, 0, active.id as string);
+
+    await reorderCategories(parentId, newOrder);
+    toast.success("Categories reordered");
+  }, [categories, reorderCategories]);
+
+  const renderSortableCategories = useCallback((cats: CategoryWithChildren[], depth: number = 0, parentId: string | null = null) => {
+    const ids = cats.map(c => c.id);
 
     return (
-      <div key={category.id} className="space-y-1">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className={`flex items-center gap-2 p-3 rounded-xl bg-muted/50 group hover:bg-muted transition-colors ${
-            depth > 0 ? "ml-8 border-l-2 border-muted" : ""
-          }`}
-        >
-          {/* Drag handle */}
-          <button className="touch-none cursor-grab active:cursor-grabbing p-1 rounded hover:bg-accent transition-colors">
-            <GripVertical className="h-4 w-4 text-muted-foreground" />
-          </button>
-
-          {/* Expand button */}
-          <button
-            onClick={() => toggleExpand(category.id)}
-            className="p-1 rounded hover:bg-accent transition-colors"
-          >
-            {hasChildren ? (
-              isExpanded ? (
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              ) : (
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              )
-            ) : (
-              <div className="h-4 w-4" />
-            )}
-          </button>
-
-          {/* Category info */}
-          <div className="flex-1 min-w-0">
-            <p className="font-body font-medium text-foreground">{category.name}</p>
-            <p className="text-xs text-muted-foreground">/category/{category.slug}</p>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        modifiers={[restrictToVerticalAxis]}
+        onDragEnd={(event) => handleDragEnd(event, parentId)}
+      >
+        <SortableContext items={ids} strategy={verticalListSortingStrategy}>
+          <div className="space-y-2">
+            {cats.map(category => (
+              <SortableCategoryItem
+                key={category.id}
+                category={category}
+                depth={depth}
+                isExpanded={expandedCategories.has(category.id)}
+                onToggleExpand={toggleExpand}
+                onAddSubcategory={handleAddCategory}
+                onEdit={handleEditCategory}
+                onDelete={handleDelete}
+                renderChildren={(children, d) => renderSortableCategories(children, d, category.id)}
+              />
+            ))}
           </div>
-
-          {hasChildren && (
-            <span className="px-2 py-0.5 bg-primary/10 text-primary rounded text-xs font-medium">
-              {category.children.length} subcategories
-            </span>
-          )}
-
-          {/* Actions */}
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => handleAddCategory(category)}
-              title="Add subcategory"
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => handleEditCategory(category)}
-            >
-              <Edit2 className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-destructive hover:text-destructive"
-              onClick={() => handleDelete(category.id, hasChildren)}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        </motion.div>
-
-        {/* Children */}
-        <AnimatePresence>
-          {isExpanded && hasChildren && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="space-y-1"
-            >
-              {category.children.map(child => renderCategory(child, depth + 1))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+        </SortableContext>
+      </DndContext>
     );
-  };
+  }, [sensors, expandedCategories, handleDragEnd]);
 
   if (loading) {
     return (
@@ -249,7 +236,7 @@ const AdminCategories = () => {
         <CardHeader>
           <CardTitle className="font-display text-xl">Category Tree</CardTitle>
           <CardDescription>
-            Click + to add subcategories • Click arrow to expand
+            Drag to reorder • Click + to add subcategories • Click arrow to expand
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -268,9 +255,7 @@ const AdminCategories = () => {
               </Button>
             </div>
           ) : (
-            <div className="space-y-2">
-              {categoryTree.map(category => renderCategory(category))}
-            </div>
+            renderSortableCategories(categoryTree, 0, null)
           )}
         </CardContent>
       </Card>
