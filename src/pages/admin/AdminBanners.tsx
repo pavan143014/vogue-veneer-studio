@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { ImageUpload } from "@/components/admin/ImageUpload";
 
 const AdminBanners = () => {
   const { banners, loading, createBanner, updateBanner, deleteBanner } =
@@ -180,17 +181,14 @@ const AdminBanners = () => {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="image_url">Image URL</Label>
-                <Input
-                  id="image_url"
-                  value={formData.image_url}
-                  onChange={(e) =>
-                    setFormData({ ...formData, image_url: e.target.value })
-                  }
-                  placeholder="https://..."
-                />
-              </div>
+              {/* Image Upload */}
+              <ImageUpload
+                label="Banner Image"
+                value={formData.image_url}
+                onChange={(url) => setFormData({ ...formData, image_url: url })}
+                folder="banners"
+                aspectRatio="banner"
+              />
 
               <div className="space-y-2">
                 <Label htmlFor="link_url">Link URL</Label>
