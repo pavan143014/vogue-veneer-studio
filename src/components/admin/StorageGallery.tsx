@@ -50,10 +50,6 @@ export const StorageGallery = () => {
           (file) => file.metadata && !file.name.startsWith(".")
         ) as StorageFile[];
         setFiles(imageFiles);
-        const imageFiles = (data || []).filter(
-          (file) => file.metadata && !file.name.startsWith(".")
-        ) as StorageFile[];
-        setFiles(imageFiles);
       }
     } catch (error) {
       console.error("Error:", error);
