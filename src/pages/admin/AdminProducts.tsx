@@ -34,6 +34,7 @@ import {
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { MultiImageUpload } from "@/components/admin/ImageUpload";
+import { CategorySelect } from "@/components/admin/CategorySelect";
 
 const AdminProducts = () => {
   const { products, loading, createProduct, updateProduct, deleteProduct } =
