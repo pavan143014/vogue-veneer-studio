@@ -1,13 +1,20 @@
 import { ArrowRight, Sparkles, Gift, Zap, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { useStorefrontContent } from "@/hooks/useStorefrontContent";
 
 interface PromoBannerProps {
   variant?: "primary" | "secondary" | "accent" | "flash";
 }
 
 const PromoBanner = ({ variant = "primary" }: PromoBannerProps) => {
+  const { content } = useStorefrontContent();
+
   if (variant === "flash") {
+    const flashContent = content.promo_flash || { text: "⚡ FLASH SALE: Extra 30% OFF Everything! Use Code: FLASH30 ⚡", is_active: true };
+    
+    if (!flashContent.is_active) return null;
+    
     return (
       <motion.section 
         className="relative overflow-hidden py-4 bg-gradient-to-r from-coral via-gold to-coral"
@@ -33,7 +40,7 @@ const PromoBanner = ({ variant = "primary" }: PromoBannerProps) => {
               <Zap className="w-5 h-5" />
             </motion.div>
             <span className="font-body text-sm md:text-base font-semibold tracking-wide">
-              ⚡ FLASH SALE: Extra 30% OFF Everything! Use Code: FLASH30 ⚡
+              {flashContent.text}
             </span>
             <motion.div
               animate={{ rotate: [0, -15, 15, 0] }}
@@ -48,6 +55,13 @@ const PromoBanner = ({ variant = "primary" }: PromoBannerProps) => {
   }
 
   if (variant === "secondary") {
+    const secondaryContent = content.promo_secondary || {
+      badge: "Limited Offer",
+      title: "Buy 2, Get 1 Free!",
+      subtitle: "On all Kurthis & Dresses • Valid till stocks last",
+      cta: "Shop Now"
+    };
+
     return (
       <motion.section 
         className="relative py-12 md:py-16 overflow-hidden bg-secondary"
@@ -84,13 +98,13 @@ const PromoBanner = ({ variant = "primary" }: PromoBannerProps) => {
                 >
                   <Gift className="w-5 h-5" />
                 </motion.div>
-                <span className="font-body text-sm tracking-widest uppercase opacity-90">Limited Offer</span>
+                <span className="font-body text-sm tracking-widest uppercase opacity-90">{secondaryContent.badge}</span>
               </div>
               <h3 className="font-display text-2xl md:text-4xl font-bold mb-2">
-                Buy 2, Get 1 Free!
+                {secondaryContent.title}
               </h3>
               <p className="font-body text-sm md:text-base opacity-90">
-                On all Kurthis & Dresses • Valid till stocks last
+                {secondaryContent.subtitle}
               </p>
             </motion.div>
             <motion.div
@@ -101,7 +115,7 @@ const PromoBanner = ({ variant = "primary" }: PromoBannerProps) => {
                 size="lg"
                 className="bg-accent text-accent-foreground hover:bg-accent/90 font-body font-semibold px-8 shadow-lg glow-gold"
               >
-                Shop Now
+                {secondaryContent.cta}
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
             </motion.div>
@@ -160,6 +174,15 @@ const PromoBanner = ({ variant = "primary" }: PromoBannerProps) => {
   }
 
   // Primary variant
+  const primaryContent = content.promo_primary || {
+    badge: "New Collection Arrived",
+    title_line1: "Festive Season",
+    title_line2: "Special",
+    description: "Celebrate with our exclusive handcrafted pieces. Each design tells a story of tradition and elegance.",
+    cta_primary: "Explore Collection",
+    cta_secondary: "View Lookbook"
+  };
+
   return (
     <motion.section 
       className="relative py-16 md:py-24 overflow-hidden bg-gradient-to-br from-coral via-coral-dark to-plum"
@@ -211,7 +234,7 @@ const PromoBanner = ({ variant = "primary" }: PromoBannerProps) => {
             >
               <Sparkles className="w-4 h-4" />
             </motion.div>
-            <span className="font-body text-xs tracking-widest uppercase">New Collection Arrived</span>
+            <span className="font-body text-xs tracking-widest uppercase">{primaryContent.badge}</span>
           </motion.div>
           
           <motion.h2 
@@ -221,7 +244,7 @@ const PromoBanner = ({ variant = "primary" }: PromoBannerProps) => {
             viewport={{ once: true }}
             transition={{ delay: 0.4 }}
           >
-            Festive Season
+            {primaryContent.title_line1}
             <motion.span 
               className="block text-gold"
               initial={{ opacity: 0, x: -30 }}
@@ -229,7 +252,7 @@ const PromoBanner = ({ variant = "primary" }: PromoBannerProps) => {
               viewport={{ once: true }}
               transition={{ delay: 0.6 }}
             >
-              Special
+              {primaryContent.title_line2}
             </motion.span>
           </motion.h2>
           
@@ -240,7 +263,7 @@ const PromoBanner = ({ variant = "primary" }: PromoBannerProps) => {
             viewport={{ once: true }}
             transition={{ delay: 0.5 }}
           >
-            Celebrate with our exclusive handcrafted pieces. Each design tells a story of tradition and elegance.
+            {primaryContent.description}
           </motion.p>
           
           <motion.div 
@@ -261,7 +284,7 @@ const PromoBanner = ({ variant = "primary" }: PromoBannerProps) => {
                   transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
                 />
                 <span className="relative z-10 flex items-center">
-                  Explore Collection
+                  {primaryContent.cta_primary}
                   <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </span>
               </Button>
@@ -272,7 +295,7 @@ const PromoBanner = ({ variant = "primary" }: PromoBannerProps) => {
                 variant="outline"
                 className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 font-body font-semibold px-8 text-base"
               >
-                View Lookbook
+                {primaryContent.cta_secondary}
               </Button>
             </motion.div>
           </motion.div>
