@@ -3,6 +3,7 @@ import { useCategories, CategoryWithChildren } from "@/hooks/useCategories";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
   Dialog,
@@ -14,6 +15,9 @@ import {
   Plus,
   Loader2,
   FolderTree,
+  Upload,
+  X,
+  Image as ImageIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -32,6 +36,7 @@ import {
 } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { SortableCategoryItem } from "@/components/admin/SortableCategoryItem";
+import { supabase } from "@/integrations/supabase/client";
 
 const AdminCategories = () => {
   const { categoryTree, categories, loading, createCategory, updateCategory, deleteCategory, reorderCategories } = useCategories();
@@ -39,11 +44,14 @@ const AdminCategories = () => {
   const [editingCategory, setEditingCategory] = useState<CategoryWithChildren | null>(null);
   const [parentCategory, setParentCategory] = useState<CategoryWithChildren | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
+    description: "",
+    image_url: "",
   });
 
   const sensors = useSensors(
