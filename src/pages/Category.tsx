@@ -105,18 +105,30 @@ const Category = () => {
       <main className="pb-16">
         {/* Hero Section */}
         <motion.section 
-          className="relative py-12 md:py-16 bg-gradient-to-br from-coral/10 via-background to-gold/10 overflow-hidden"
+          className="relative py-12 md:py-16 overflow-hidden"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6 }}
         >
-          <div className="absolute inset-0 overflow-hidden">
-            <motion.div 
-              className="absolute top-10 right-10 w-64 h-64 bg-coral/10 rounded-full blur-3xl"
-              animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
-              transition={{ duration: 6, repeat: Infinity }}
-            />
-          </div>
+          {/* Background Image or Gradient */}
+          {currentCategory?.image_url ? (
+            <div className="absolute inset-0">
+              <img 
+                src={currentCategory.image_url} 
+                alt={currentCategory.name}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background" />
+            </div>
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-coral/10 via-background to-gold/10">
+              <motion.div 
+                className="absolute top-10 right-10 w-64 h-64 bg-coral/10 rounded-full blur-3xl"
+                animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+                transition={{ duration: 6, repeat: Infinity }}
+              />
+            </div>
+          )}
           
           <div className="container mx-auto px-4 relative z-10">
             {/* Breadcrumb */}
@@ -180,13 +192,17 @@ const Category = () => {
                   {currentCategory?.name}
                 </h1>
               )}
-              <p className="font-body text-lg text-muted-foreground max-w-xl mx-auto">
-                {loading ? (
-                  <Skeleton className="h-6 w-48 mx-auto" />
-                ) : (
-                  `Explore our collection of ${currentCategory?.name?.toLowerCase()}`
-                )}
-              </p>
+              {loading ? (
+                <Skeleton className="h-6 w-48 mx-auto" />
+              ) : currentCategory?.description ? (
+                <p className="font-body text-lg text-muted-foreground max-w-xl mx-auto">
+                  {currentCategory.description}
+                </p>
+              ) : (
+                <p className="font-body text-lg text-muted-foreground max-w-xl mx-auto">
+                  Explore our collection of {currentCategory?.name?.toLowerCase()}
+                </p>
+              )}
             </motion.div>
           </div>
         </motion.section>
@@ -199,15 +215,22 @@ const Category = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="flex flex-wrap gap-3 justify-center"
+                className="flex flex-wrap gap-4 justify-center"
               >
                 {subcategories.map((sub) => (
                   <Link
                     key={sub.id}
                     to={`/category/${sub.slug}`}
-                    className="px-4 py-2 rounded-full bg-muted hover:bg-primary hover:text-primary-foreground transition-colors font-body text-sm"
+                    className="group flex items-center gap-3 px-4 py-2 rounded-full bg-muted hover:bg-primary hover:text-primary-foreground transition-colors"
                   >
-                    {sub.name}
+                    {sub.image_url && (
+                      <img 
+                        src={sub.image_url} 
+                        alt={sub.name}
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    )}
+                    <span className="font-body text-sm">{sub.name}</span>
                   </Link>
                 ))}
               </motion.div>

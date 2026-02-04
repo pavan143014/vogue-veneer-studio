@@ -104,7 +104,9 @@ export type Database = {
       categories: {
         Row: {
           created_at: string
+          description: string | null
           id: string
+          image_url: string | null
           is_active: boolean | null
           name: string
           parent_id: string | null
@@ -114,7 +116,9 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          description?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean | null
           name: string
           parent_id?: string | null
@@ -124,7 +128,9 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          description?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean | null
           name?: string
           parent_id?: string | null
