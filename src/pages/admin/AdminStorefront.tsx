@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { ImageUpload } from "@/components/admin/ImageUpload";
+import { StorageGallery } from "@/components/admin/StorageGallery";
 
 const AdminStorefront = () => {
   const { sections, loading, updateSection, toggleSection } = useAdminStorefrontContent();
@@ -568,63 +570,60 @@ const AdminStorefront = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            className="space-y-6"
           >
+            {/* Hero Image */}
             <Card className="border-0 shadow-lg">
               <CardHeader>
-                <CardTitle className="font-display">Section Images</CardTitle>
+                <CardTitle className="font-display">Hero Image</CardTitle>
                 <CardDescription>
-                  Update images for different sections (provide image URLs)
+                  Upload or update the main hero banner image
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Label>Hero Image URL</Label>
-                  <Input
-                    value={heroContent.image_url || ""}
-                    onChange={(e) => updateField("hero", "image_url", e.target.value)}
-                    placeholder="https://... (leave empty to use default)"
-                  />
-                  {heroContent.image_url && (
-                    <div className="mt-2 rounded-lg overflow-hidden w-48 h-32 bg-muted">
-                      <img 
-                        src={heroContent.image_url} 
-                        alt="Hero preview" 
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Brand Story Image URL</Label>
-                  <Input
-                    value={brandStoryContent.image_url || ""}
-                    onChange={(e) => updateField("brand_story", "image_url", e.target.value)}
-                    placeholder="https://... (leave empty to use default)"
-                  />
-                  {brandStoryContent.image_url && (
-                    <div className="mt-2 rounded-lg overflow-hidden w-48 h-32 bg-muted">
-                      <img 
-                        src={brandStoryContent.image_url} 
-                        alt="Brand story preview" 
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex justify-end gap-3">
-                  <Button onClick={() => handleSave("hero")} disabled={saving === "hero"} variant="outline">
-                    {saving === "hero" ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              <CardContent className="space-y-4">
+                <ImageUpload
+                  label="Hero Banner"
+                  value={heroContent.image_url || ""}
+                  onChange={(url) => updateField("hero", "image_url", url)}
+                  folder="storefront"
+                  aspectRatio="video"
+                />
+                <div className="flex justify-end">
+                  <Button onClick={() => handleSave("hero")} disabled={saving === "hero"}>
+                    {saving === "hero" ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
                     Save Hero Image
                   </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Brand Story Image */}
+            <Card className="border-0 shadow-lg">
+              <CardHeader>
+                <CardTitle className="font-display">Brand Story Image</CardTitle>
+                <CardDescription>
+                  Upload or update the about section image
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <ImageUpload
+                  label="Brand Story"
+                  value={brandStoryContent.image_url || ""}
+                  onChange={(url) => updateField("brand_story", "image_url", url)}
+                  folder="storefront"
+                  aspectRatio="square"
+                />
+                <div className="flex justify-end">
                   <Button onClick={() => handleSave("brand_story")} disabled={saving === "brand_story"}>
-                    {saving === "brand_story" ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                    {saving === "brand_story" ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
                     Save Brand Image
                   </Button>
                 </div>
               </CardContent>
             </Card>
+
+            {/* Existing Images Gallery */}
+            <StorageGallery />
           </motion.div>
         </TabsContent>
       </Tabs>
