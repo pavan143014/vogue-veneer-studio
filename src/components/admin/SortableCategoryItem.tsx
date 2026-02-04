@@ -105,6 +105,12 @@ export function SortableCategoryItem({
           <p className="text-xs text-muted-foreground">/category/{category.slug}</p>
         </div>
 
+        {hasChildren && (
+          <span className="px-2 py-0.5 bg-primary/10 text-primary rounded text-xs font-medium">
+            {category.children.length} subcategories
+          </span>
+        )}
+
         {/* Actions */}
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <Button
