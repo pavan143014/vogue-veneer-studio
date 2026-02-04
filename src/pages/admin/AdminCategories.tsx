@@ -73,9 +73,44 @@ const AdminCategories = () => {
   };
 
   const resetForm = () => {
-    setFormData({ name: "", slug: "" });
+    setFormData({ name: "", slug: "", description: "", image_url: "" });
     setEditingCategory(null);
     setParentCategory(null);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload an image file");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `category-${Date.now()}.${fileExt}`;
+      const filePath = `categories/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("admin-uploads")
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("admin-uploads")
+        .getPublicUrl(filePath);
+
+      setFormData((prev) => ({ ...prev, image_url: publicUrl }));
+      toast.success("Image uploaded");
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Failed to upload image");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleAddCategory = (parent?: CategoryWithChildren) => {
