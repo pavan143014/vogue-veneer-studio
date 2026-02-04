@@ -333,10 +333,11 @@ const AdminCategories = () => {
                 value={formData.name}
                 onChange={(e) => {
                   const name = e.target.value;
-                  setFormData({
+                  setFormData((prev) => ({
+                    ...prev,
                     name,
-                    slug: editingCategory ? formData.slug : generateSlug(name),
-                  });
+                    slug: editingCategory ? prev.slug : generateSlug(name),
+                  }));
                 }}
                 placeholder="e.g., Silk Sarees"
                 required
@@ -355,6 +356,55 @@ const AdminCategories = () => {
               <p className="text-xs text-muted-foreground">
                 URL: /category/{formData.slug || "..."}
               </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Brief description for the category page"
+                rows={2}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Category Image</Label>
+              {formData.image_url ? (
+                <div className="relative group w-full h-32 rounded-xl overflow-hidden border border-border">
+                  <img 
+                    src={formData.image_url} 
+                    alt="Category" 
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, image_url: "" })}
+                    className="absolute top-2 right-2 p-1.5 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-xl cursor-pointer hover:bg-muted/50 transition-colors">
+                  {uploading ? (
+                    <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                  ) : (
+                    <>
+                      <ImageIcon className="w-8 h-8 text-muted-foreground mb-2" />
+                      <span className="text-sm text-muted-foreground">Click to upload</span>
+                    </>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    disabled={uploading}
+                  />
+                </label>
+              )}
             </div>
 
             <div className="flex gap-3 pt-4">
