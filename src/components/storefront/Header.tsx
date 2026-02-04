@@ -403,6 +403,9 @@ const Header = () => {
                 </Link>
               </motion.div>
               
+              {/* Category Navigation */}
+              <MobileCategoryNav onClose={() => setIsMenuOpen(false)} />
+
               <motion.div
                 className="border-b border-border/30"
                 initial={{ opacity: 0, x: -20 }}
