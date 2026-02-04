@@ -49,7 +49,8 @@ const AdminLayout = () => {
     if (authLoading || adminLoading) return;
     
     if (!user) {
-      navigate("/");
+      const redirect = encodeURIComponent(`${location.pathname}${location.search}`);
+      navigate(`/admin/login?redirect=${redirect}`, { replace: true });
       toast.error("Please sign in to access admin dashboard");
       return;
     }

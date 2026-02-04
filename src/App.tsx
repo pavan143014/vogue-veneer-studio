@@ -29,6 +29,7 @@ import AdminBanners from "./pages/admin/AdminBanners";
 import AdminPayments from "./pages/admin/AdminPayments";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminUsers from "./pages/admin/AdminUsers";
+import AdminLogin from "./pages/admin/AdminLogin";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +54,8 @@ const AppContent = () => {
           <Route path="/account" element={<><MobileBottomNav /><div className="pb-16 md:pb-0"><Account /></div></>} />
           <Route path="/account/wishlist" element={<><MobileBottomNav /><div className="pb-16 md:pb-0"><AccountWishlist /></div></>} />
           <Route path="/account/orders" element={<><MobileBottomNav /><div className="pb-16 md:pb-0"><AccountOrders /></div></>} />
+          
+          <Route path="/admin/login" element={<AdminLogin />} />
           
           {/* Admin Routes */}
           <Route path="/admin" element={<AdminLayout />}>
