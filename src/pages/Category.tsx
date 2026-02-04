@@ -215,15 +215,22 @@ const Category = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="flex flex-wrap gap-3 justify-center"
+                className="flex flex-wrap gap-4 justify-center"
               >
                 {subcategories.map((sub) => (
                   <Link
                     key={sub.id}
                     to={`/category/${sub.slug}`}
-                    className="px-4 py-2 rounded-full bg-muted hover:bg-primary hover:text-primary-foreground transition-colors font-body text-sm"
+                    className="group flex items-center gap-3 px-4 py-2 rounded-full bg-muted hover:bg-primary hover:text-primary-foreground transition-colors"
                   >
-                    {sub.name}
+                    {sub.image_url && (
+                      <img 
+                        src={sub.image_url} 
+                        alt={sub.name}
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    )}
+                    <span className="font-body text-sm">{sub.name}</span>
                   </Link>
                 ))}
               </motion.div>
