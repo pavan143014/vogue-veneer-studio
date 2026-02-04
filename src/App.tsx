@@ -9,6 +9,7 @@ import MobileBottomNav from "@/components/storefront/MobileBottomNav";
 import Index from "./pages/Index";
 import Shop from "./pages/Shop";
 import ProductDetail from "./pages/ProductDetail";
+import AdminProductDetail from "./pages/AdminProductDetail";
 import OrderConfirmation from "./pages/OrderConfirmation";
 import TrackOrder from "./pages/TrackOrder";
 import AboutUs from "./pages/AboutUs";
@@ -48,6 +49,7 @@ const AppContent = () => {
           <Route path="/" element={<><MobileBottomNav /><div className="pb-16 md:pb-0"><Index /></div></>} />
           <Route path="/shop" element={<><MobileBottomNav /><div className="pb-16 md:pb-0"><Shop /></div></>} />
           <Route path="/product/:handle" element={<><MobileBottomNav /><div className="pb-16 md:pb-0"><ProductDetail /></div></>} />
+          <Route path="/p/:id" element={<><MobileBottomNav /><div className="pb-16 md:pb-0"><AdminProductDetail /></div></>} />
           <Route path="/checkout" element={<><MobileBottomNav /><div className="pb-16 md:pb-0"><Checkout /></div></>} />
           <Route path="/order-confirmation" element={<><MobileBottomNav /><div className="pb-16 md:pb-0"><OrderConfirmation /></div></>} />
           <Route path="/track-order" element={<><MobileBottomNav /><div className="pb-16 md:pb-0"><TrackOrder /></div></>} />
