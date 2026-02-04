@@ -159,6 +159,9 @@ const Header = () => {
               </Link>
             </motion.div>
 
+            {/* Categories Dropdown */}
+            <CategoryNav />
+
             {/* Track Order Link */}
             <motion.div
               initial={{ opacity: 0, y: -10 }}
