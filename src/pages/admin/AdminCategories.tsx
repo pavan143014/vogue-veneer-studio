@@ -141,6 +141,8 @@ const AdminCategories = () => {
       const { error } = await updateCategory(editingCategory.id, {
         name: formData.name,
         slug: formData.slug,
+        description: formData.description || null,
+        image_url: formData.image_url || null,
       });
       if (error) {
         toast.error("Failed to update category");
