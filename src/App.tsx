@@ -32,6 +32,7 @@ import AdminSettings from "./pages/admin/AdminSettings";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminStorefront from "./pages/admin/AdminStorefront";
 import AdminDiscounts from "./pages/admin/AdminDiscounts";
+import AdminCategories from "./pages/admin/AdminCategories";
 import AdminLogin from "./pages/admin/AdminLogin";
 
 const queryClient = new QueryClient();
