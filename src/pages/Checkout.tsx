@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, CreditCard, MapPin, User, Phone, Mail, Building, ShoppingBag, Loader2 } from "lucide-react";
+import { ArrowLeft, CreditCard, MapPin, User, Phone, Mail, Building, ShoppingBag, Loader2, Ticket, X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,10 +22,20 @@ interface ShippingDetails {
   pincode: string;
 }
 
+interface AppliedDiscount {
+  code: string;
+  type: "percentage" | "fixed";
+  value: number;
+  discountAmount: number;
+}
+
 const Checkout = () => {
   const navigate = useNavigate();
   const { items, totalPrice, clearCart } = useLocalCartStore();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [discountCode, setDiscountCode] = useState("");
+  const [isValidatingCode, setIsValidatingCode] = useState(false);
+  const [appliedDiscount, setAppliedDiscount] = useState<AppliedDiscount | null>(null);
   const [shippingDetails, setShippingDetails] = useState<ShippingDetails>({
     fullName: "",
     email: "",
@@ -38,10 +48,85 @@ const Checkout = () => {
 
   const subtotal = totalPrice();
   const shipping = subtotal > 999 ? 0 : 99;
-  const total = subtotal + shipping;
+  const discountAmount = appliedDiscount?.discountAmount || 0;
+  const total = Math.max(0, subtotal + shipping - discountAmount);
 
   const handleInputChange = (field: keyof ShippingDetails, value: string) => {
     setShippingDetails(prev => ({ ...prev, [field]: value }));
+  };
+
+  const applyDiscountCode = async () => {
+    if (!discountCode.trim()) {
+      toast.error("Please enter a discount code");
+      return;
+    }
+
+    setIsValidatingCode(true);
+
+    try {
+      const { data: discount, error } = await supabase
+        .from("discount_codes")
+        .select("*")
+        .eq("code", discountCode.toUpperCase().trim())
+        .eq("is_active", true)
+        .single();
+
+      if (error || !discount) {
+        toast.error("Invalid discount code");
+        setIsValidatingCode(false);
+        return;
+      }
+
+      // Check if expired
+      if (discount.expires_at && new Date(discount.expires_at) < new Date()) {
+        toast.error("This discount code has expired");
+        setIsValidatingCode(false);
+        return;
+      }
+
+      // Check max uses
+      if (discount.max_uses && discount.current_uses >= discount.max_uses) {
+        toast.error("This discount code has reached its usage limit");
+        setIsValidatingCode(false);
+        return;
+      }
+
+      // Check minimum order amount
+      if (discount.min_order_amount && subtotal < discount.min_order_amount) {
+        toast.error(`Minimum order amount of ₹${discount.min_order_amount} required`);
+        setIsValidatingCode(false);
+        return;
+      }
+
+      // Calculate discount
+      let calculatedDiscount = 0;
+      const discountType = discount.discount_type as "percentage" | "fixed";
+      if (discountType === "percentage") {
+        calculatedDiscount = (subtotal * discount.discount_value) / 100;
+      } else {
+        calculatedDiscount = discount.discount_value;
+      }
+
+      setAppliedDiscount({
+        code: discount.code,
+        type: discountType,
+        value: discount.discount_value,
+        discountAmount: Math.min(calculatedDiscount, subtotal), // Don't exceed subtotal
+      });
+
+      toast.success(`Discount code "${discount.code}" applied!`);
+    } catch (error) {
+      console.error("Error applying discount:", error);
+      toast.error("Failed to apply discount code");
+    } finally {
+      setIsValidatingCode(false);
+    }
+  };
+
+  const removeDiscount = () => {
+    setAppliedDiscount(null);
+    setDiscountCode("");
+    toast.success("Discount removed");
   };
 
   const validateForm = () => {
@@ -119,6 +204,8 @@ const Checkout = () => {
           pincode: shippingDetails.pincode,
           subtotal: subtotal,
           shipping_cost: shipping,
+          discount_code: appliedDiscount?.code || null,
+          discount_amount: discountAmount,
           total: total,
           currency: "INR",
           estimated_delivery: estimatedDelivery,
@@ -133,6 +220,22 @@ const Checkout = () => {
 
       if (!data?.success) {
         throw new Error(data?.error || "Failed to create order");
+      }
+
+      // Update discount code usage count if a code was applied
+      if (appliedDiscount) {
+        const { data: discountData } = await supabase
+          .from("discount_codes")
+          .select("current_uses")
+          .eq("code", appliedDiscount.code)
+          .single();
+        
+        if (discountData) {
+          await supabase
+            .from("discount_codes")
+            .update({ current_uses: (discountData.current_uses || 0) + 1 })
+            .eq("code", appliedDiscount.code);
+        }
       }
 
       toast.success("Order placed successfully!", {
@@ -312,6 +415,66 @@ const Checkout = () => {
               </div>
             </div>
 
+            {/* Discount Code */}
+            <div className="bg-card rounded-2xl border border-border p-6">
+              <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                <Ticket size={20} className="text-primary" />
+                Discount Code
+              </h2>
+
+              {appliedDiscount ? (
+                <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-green-100 dark:bg-green-800 rounded-lg flex items-center justify-center">
+                        <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
+                      </div>
+                      <div>
+                        <p className="font-body font-semibold text-green-700 dark:text-green-300">
+                          {appliedDiscount.code}
+                        </p>
+                        <p className="font-body text-xs text-green-600 dark:text-green-400">
+                          {appliedDiscount.type === "percentage"
+                            ? `${appliedDiscount.value}% off`
+                            : `₹${appliedDiscount.value} off`}
+                          {" "}- You save ₹{appliedDiscount.discountAmount.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-green-600 hover:text-red-600 hover:bg-red-50"
+                      onClick={removeDiscount}
+                    >
+                      <X size={16} />
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Enter discount code"
+                    value={discountCode}
+                    onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                    className="uppercase font-mono"
+                    onKeyDown={(e) => e.key === "Enter" && applyDiscountCode()}
+                  />
+                  <Button
+                    onClick={applyDiscountCode}
+                    disabled={isValidatingCode}
+                    variant="outline"
+                  >
+                    {isValidatingCode ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      "Apply"
+                    )}
+                  </Button>
+                </div>
+              )}
+            </div>
+
             {/* Payment Method */}
             <div className="bg-card rounded-2xl border border-border p-6">
               <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
@@ -391,6 +554,15 @@ const Checkout = () => {
                     )}
                   </span>
                 </div>
+                {appliedDiscount && (
+                  <div className="flex justify-between text-green-600">
+                    <span className="font-body flex items-center gap-1">
+                      <Ticket size={14} />
+                      Discount ({appliedDiscount.code})
+                    </span>
+                    <span className="font-body">-₹{discountAmount.toLocaleString()}</span>
+                  </div>
+                )}
                 {shipping === 0 && (
                   <p className="text-xs text-green-600 font-body">
                     ✓ Free shipping on orders above ₹999

@@ -15,6 +15,7 @@ import {
   Sun,
   Moon,
   Store,
+  Ticket,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -30,6 +31,7 @@ const navigation = [
   { name: "Storefront", href: "/admin/storefront", icon: Store },
   { name: "Products", href: "/admin/products", icon: Package },
   { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
+  { name: "Discounts", href: "/admin/discounts", icon: Ticket },
   { name: "Menus", href: "/admin/menus", icon: Menu },
   { name: "Banners", href: "/admin/banners", icon: Image },
   { name: "Payments", href: "/admin/payments", icon: CreditCard },
