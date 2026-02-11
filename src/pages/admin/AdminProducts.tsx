@@ -48,6 +48,8 @@ import { ProductVariantsEditor, ProductVariant } from "@/components/admin/Produc
 import { BulkProductImport } from "@/components/admin/BulkProductImport";
 import { BulkProductExport } from "@/components/admin/BulkProductExport";
 
+const ITEMS_PER_PAGE = 20;
+
 const AdminProducts = () => {
   const { products, loading, createProduct, updateProduct, deleteProduct, fetchData } =
     useAdminData();
@@ -58,6 +60,7 @@ const AdminProducts = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [saving, setSaving] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -212,6 +215,24 @@ const AdminProducts = () => {
     setFilterStatus("all");
     setFilterStock("all");
     setSearchQuery("");
+    setCurrentPage(1);
+  };
+
+  // Reset page when filters/search change
+  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+  const paginatedProducts = filteredProducts.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  // Reset to page 1 when filters change
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  };
+  const handleFilterChange = (setter: (v: string) => void) => (value: string) => {
+    setter(value);
+    setCurrentPage(1);
   };
 
   if (loading) {
@@ -409,13 +430,13 @@ const AdminProducts = () => {
             <Input
               placeholder="Search by title, SKU, or category..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
               className="pl-10"
             />
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Filter size={14} className="text-muted-foreground" />
-            <Select value={filterCategory} onValueChange={setFilterCategory}>
+            <Select value={filterCategory} onValueChange={handleFilterChange(setFilterCategory)}>
               <SelectTrigger className="w-[160px] h-9 text-sm">
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
@@ -428,7 +449,7 @@ const AdminProducts = () => {
                 ))}
               </SelectContent>
             </Select>
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <Select value={filterStatus} onValueChange={handleFilterChange(setFilterStatus)}>
               <SelectTrigger className="w-[130px] h-9 text-sm">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
@@ -438,7 +459,7 @@ const AdminProducts = () => {
                 <SelectItem value="draft">Draft</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={filterStock} onValueChange={setFilterStock}>
+            <Select value={filterStock} onValueChange={handleFilterChange(setFilterStock)}>
               <SelectTrigger className="w-[140px] h-9 text-sm">
                 <SelectValue placeholder="Stock" />
               </SelectTrigger>
@@ -465,7 +486,7 @@ const AdminProducts = () => {
       {/* Products Table */}
       <Card className="border-0 shadow-lg">
         <CardContent className="p-0">
-          {filteredProducts.length === 0 ? (
+          {paginatedProducts.length === 0 ? (
             <div className="text-center py-12">
               <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="font-display text-lg text-foreground mb-2">
@@ -488,7 +509,7 @@ const AdminProducts = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredProducts.map((product, index) => (
+                {paginatedProducts.map((product, index) => (
                   <motion.tr
                     key={product.id}
                     initial={{ opacity: 0 }}
@@ -587,6 +608,55 @@ const AdminProducts = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(currentPage * ITEMS_PER_PAGE, filteredProducts.length)} of {filteredProducts.length} products
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </Button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter((page) => page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1)
+              .reduce<(number | string)[]>((acc, page, idx, arr) => {
+                if (idx > 0 && page - (arr[idx - 1] as number) > 1) acc.push("...");
+                acc.push(page);
+                return acc;
+              }, [])
+              .map((item, idx) =>
+                typeof item === "string" ? (
+                  <span key={`ellipsis-${idx}`} className="px-1 text-muted-foreground text-sm">…</span>
+                ) : (
+                  <Button
+                    key={item}
+                    variant={currentPage === item ? "default" : "outline"}
+                    size="sm"
+                    className="min-w-[36px]"
+                    onClick={() => setCurrentPage(item)}
+                  >
+                    {item}
+                  </Button>
+                )
+              )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
