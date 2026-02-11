@@ -13,6 +13,14 @@ import { toast } from "sonner";
 import { Product } from "@/data/products";
 import { useLocalCartStore } from "@/stores/localCartStore";
 
+const COLOR_MAP: Record<string, string> = {
+  red: "#DC2626", blue: "#2563EB", green: "#16A34A", black: "#000000",
+  white: "#FFFFFF", yellow: "#EAB308", pink: "#EC4899", orange: "#EA580C",
+  purple: "#9333EA", brown: "#92400E", grey: "#6B7280", gray: "#6B7280",
+  navy: "#1E3A5F", maroon: "#800000", beige: "#D4C5A9", teal: "#0D9488",
+  gold: "#D4AF37", cream: "#FFFDD0", coral: "#FF6B6B", plum: "#7B2D8E",
+};
+
 interface VariantStock {
   size?: string;
   color?: string;
@@ -211,39 +219,41 @@ const ProductCard = ({
 
           {/* Variant Stock Indicators */}
           {variantStocks.length > 0 && (
-            <div className="mt-2 space-y-1.5">
-              {/* Size availability */}
-              {variantStocks.some(v => v.size) && (
-                <div className="flex flex-wrap gap-1">
-                  {variantStocks
-                    .filter(v => v.size)
-                    .map((v, i) => {
-                      const inStock = (v.stock ?? 0) > 0;
-                      const lowStock = inStock && (v.stock ?? 0) <= 5;
-                      return (
-                        <span
-                          key={`${v.size}-${v.color}-${i}`}
-                          className={`inline-flex items-center gap-1 text-[10px] font-body font-medium px-1.5 py-0.5 rounded border ${
-                            !inStock
-                              ? "border-destructive/30 text-destructive bg-destructive/5 line-through"
-                              : lowStock
-                              ? "border-amber-500/30 text-amber-600 bg-amber-500/5"
-                              : "border-border text-muted-foreground bg-muted/30"
-                          }`}
-                          title={
-                            !inStock
-                              ? `${v.size}${v.color ? ` / ${v.color}` : ""} - Out of stock`
-                              : `${v.size}${v.color ? ` / ${v.color}` : ""} - ${v.stock} left`
-                          }
-                        >
-                          {v.size}{v.color ? `/${v.color}` : ""}
-                          {lowStock && <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />}
-                          {!inStock && <span className="w-1.5 h-1.5 rounded-full bg-destructive" />}
-                        </span>
-                      );
-                    })}
-                </div>
-              )}
+            <div className="mt-2 flex flex-wrap gap-1">
+              {variantStocks.map((v, i) => {
+                const inStock = (v.stock ?? 0) > 0;
+                const lowStock = inStock && (v.stock ?? 0) <= 5;
+                const colorHex = v.color ? COLOR_MAP[v.color.toLowerCase()] : undefined;
+                const label = [v.size, v.color].filter(Boolean).join("/");
+                if (!label) return null;
+                return (
+                  <span
+                    key={`${v.size}-${v.color}-${i}`}
+                    className={`inline-flex items-center gap-1 text-[10px] font-body font-medium px-1.5 py-0.5 rounded border ${
+                      !inStock
+                        ? "border-destructive/30 text-destructive bg-destructive/5 line-through"
+                        : lowStock
+                        ? "border-amber-500/30 text-amber-600 bg-amber-500/5"
+                        : "border-border text-muted-foreground bg-muted/30"
+                    }`}
+                    title={
+                      !inStock
+                        ? `${label} - Out of stock`
+                        : `${label} - ${v.stock} left`
+                    }
+                  >
+                    {colorHex && (
+                      <span
+                        className="w-2.5 h-2.5 rounded-full shrink-0 border border-border/50"
+                        style={{ backgroundColor: colorHex }}
+                      />
+                    )}
+                    {v.size || v.color}
+                    {lowStock && <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />}
+                    {!inStock && <span className="w-1.5 h-1.5 rounded-full bg-destructive" />}
+                  </span>
+                );
+              })}
             </div>
           )}
         </div>
