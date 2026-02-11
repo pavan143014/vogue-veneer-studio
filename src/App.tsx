@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import LocalCartDrawer from "@/components/storefront/LocalCartDrawer";
 import MobileBottomNav from "@/components/storefront/MobileBottomNav";
+import { useDynamicFavicon } from "@/hooks/useDynamicFavicon";
 import Index from "./pages/Index";
 import Shop from "./pages/Shop";
 import Category from "./pages/Category";
@@ -40,6 +41,7 @@ const queryClient = new QueryClient();
 
 // Component to use hooks inside providers
 const AppContent = () => {
+  useDynamicFavicon();
   return (
     <>
       <Toaster />
