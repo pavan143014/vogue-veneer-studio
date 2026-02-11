@@ -47,6 +47,7 @@ interface ParsedProduct {
   sku: string;
   stock_quantity: number;
   is_active: boolean;
+  tags: string[];
   images: string[];
   variants: ParsedVariant[];
   _row: number;
@@ -78,6 +79,7 @@ const SAMPLE_DATA = [
     sku: "SKU-SILK-001",
     stock_quantity: 25,
     is_active: true,
+    tags: "silk, embroidered, festive",
     image_url: "https://example.com/silk-kurthi.jpg",
     image_url_2: "https://example.com/silk-kurthi-back.jpg",
     variant_1_size: "S",
@@ -100,6 +102,7 @@ const SAMPLE_DATA = [
     sku: "SKU-CTN-002",
     stock_quantity: 40,
     is_active: true,
+    tags: "cotton, casual, block-print",
     image_url: "https://example.com/cotton-dress.jpg",
     image_url_2: "",
     variant_1_size: "Free Size",
@@ -122,6 +125,7 @@ const SAMPLE_DATA = [
     sku: "SKU-CHK-003",
     stock_quantity: 10,
     is_active: true,
+    tags: "chikankari, premium, anarkali",
     image_url: "https://example.com/chikankari.jpg",
     image_url_2: "https://example.com/chikankari-detail.jpg",
     variant_1_size: "M",
@@ -233,6 +237,9 @@ export function BulkProductImport({ onComplete }: BulkProductImportProps) {
               row.is_active === false || row.is_active === "false" || row.is_active === 0
                 ? false
                 : true,
+            tags: String(row.tags || "").trim()
+              ? String(row.tags).split(",").map((t: string) => t.trim()).filter(Boolean)
+              : [],
             images,
             variants,
             _row: i + 2,
@@ -294,6 +301,7 @@ export function BulkProductImport({ onComplete }: BulkProductImportProps) {
         sku: p.sku || null,
         stock_quantity: p.stock_quantity,
         is_active: p.is_active,
+        tags: p.tags.length > 0 ? p.tags : null,
         images: p.images,
         variants: p.variants.map((v) => ({
           id: crypto.randomUUID(),
