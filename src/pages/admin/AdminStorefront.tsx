@@ -229,16 +229,33 @@ const AdminStorefront = () => {
             <Card className="border-0 shadow-lg">
               <CardHeader>
                 <CardTitle className="font-display">Logo & Branding</CardTitle>
-                <CardDescription>Edit the store name displayed in the header</CardDescription>
+                <CardDescription>Upload a logo image or use text. If an image is set, it replaces the text logo.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Logo Image (optional — overrides text logo)</Label>
+                  {headerContent.logo_image_url && (
+                    <div className="flex items-center gap-4 p-3 border border-border rounded-lg bg-muted/30">
+                      <img src={headerContent.logo_image_url} alt="Logo preview" className="h-10 w-auto object-contain" />
+                      <Button variant="ghost" size="sm" className="text-destructive" onClick={() => updateField("header", "logo_image_url", "")}>
+                        <Trash2 className="h-4 w-4 mr-1" /> Remove
+                      </Button>
+                    </div>
+                  )}
+                  <ImageUpload
+                    value={headerContent.logo_image_url || ""}
+                    onChange={(url) => updateField("header", "logo_image_url", url)}
+                    folder="logos"
+                    label="Logo"
+                  />
+                </div>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label>Logo Text (Primary)</Label>
+                    <Label>Logo Text (Primary){headerContent.logo_image_url ? " — hidden when image is set" : ""}</Label>
                     <Input value={headerContent.logo_text_1 || ""} onChange={(e) => updateField("header", "logo_text_1", e.target.value)} placeholder="e.g., Aroma" />
                   </div>
                   <div className="space-y-2">
-                    <Label>Logo Text (Secondary)</Label>
+                    <Label>Logo Text (Secondary){headerContent.logo_image_url ? " — hidden when image is set" : ""}</Label>
                     <Input value={headerContent.logo_text_2 || ""} onChange={(e) => updateField("header", "logo_text_2", e.target.value)} placeholder="e.g., Ethnic" />
                   </div>
                 </div>
