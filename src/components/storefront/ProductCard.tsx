@@ -70,6 +70,16 @@ const ProductCard = ({
     ? Math.round(((originalPrice - price) / originalPrice) * 100) 
     : 0;
 
+  // Stock summary for badge
+  const stockSummary = (() => {
+    if (!variantStocks.length) return null;
+    const outOfStock = variantStocks.filter(v => (v.stock ?? 0) === 0).length;
+    const lowStock = variantStocks.filter(v => (v.stock ?? 0) > 0 && (v.stock ?? 0) <= 5).length;
+    if (outOfStock === variantStocks.length) return "sold-out";
+    if ((outOfStock + lowStock) / variantStocks.length >= 0.5) return "limited";
+    return null;
+  })();
+
   const handleAddToCart = async () => {
     if (!selectedSize) {
       toast.error("Please select a size");
@@ -153,6 +163,21 @@ const ProductCard = ({
                 transition={{ duration: 2, repeat: Infinity }}
               >
                 -{discount}% OFF
+              </motion.span>
+            )}
+            {stockSummary === "sold-out" && (
+              <span className="bg-destructive text-destructive-foreground text-xs font-body font-semibold px-3 py-1.5 rounded-full shadow-md">
+                Sold Out
+              </span>
+            )}
+            {stockSummary === "limited" && (
+              <motion.span
+                className="bg-amber-500 text-white text-xs font-body font-semibold px-3 py-1.5 rounded-full shadow-md"
+                initial={{ scale: 1 }}
+                animate={{ scale: [1, 1.04, 1] }}
+                transition={{ duration: 3, repeat: Infinity }}
+              >
+                🔥 Limited Stock
               </motion.span>
             )}
           </div>
