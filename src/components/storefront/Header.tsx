@@ -40,6 +40,7 @@ const Header = () => {
 
   const logoText1 = headerContent?.logo_text_1 || "Aroma";
   const logoText2 = headerContent?.logo_text_2 || " Ethnic";
+  const logoImageUrl = headerContent?.logo_image_url;
   const promoMessages = headerContent?.promo_messages?.length ? headerContent.promo_messages : defaultPromoMessages;
   const subLinks = headerContent?.sub_links?.length ? headerContent.sub_links : defaultSubLinks;
   
@@ -125,12 +126,16 @@ const Header = () => {
           <motion.div className="flex-1 md:flex-none text-center md:text-left" whileHover={{ scale: 1.02 }} transition={{ type: "spring", stiffness: 400 }}>
             <Link to="/" className="inline-block group relative">
               <motion.div className="absolute -inset-2 bg-gradient-to-r from-coral/20 via-gold/20 to-teal/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight relative">
-                <motion.span className="text-primary inline-block" whileHover={{ scale: 1.05 }} transition={{ type: "spring", stiffness: 400 }}>
-                  {logoText1}
-                </motion.span>
-                <span className="text-secondary">{logoText2}</span>
-              </h1>
+              {logoImageUrl ? (
+                <img src={logoImageUrl} alt={`${logoText1}${logoText2}`} className="h-8 md:h-10 w-auto object-contain relative" />
+              ) : (
+                <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight relative">
+                  <motion.span className="text-primary inline-block" whileHover={{ scale: 1.05 }} transition={{ type: "spring", stiffness: 400 }}>
+                    {logoText1}
+                  </motion.span>
+                  <span className="text-secondary">{logoText2}</span>
+                </h1>
+              )}
             </Link>
           </motion.div>
 

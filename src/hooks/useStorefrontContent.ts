@@ -49,6 +49,7 @@ export interface PromoPrimaryContent {
 export interface HeaderContent {
   logo_text_1: string;
   logo_text_2: string;
+  logo_image_url?: string;
   promo_messages: string[];
   sub_links: { label: string; href: string; icon: string; highlight?: boolean }[];
 }
