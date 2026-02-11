@@ -30,7 +30,16 @@ import {
   Package,
   Loader2,
   ImagePlus,
+  Filter,
+  X,
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { MultiImageUpload } from "@/components/admin/ImageUpload";
@@ -43,6 +52,9 @@ const AdminProducts = () => {
   const { products, loading, createProduct, updateProduct, deleteProduct, fetchData } =
     useAdminData();
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterStock, setFilterStock] = useState("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [saving, setSaving] = useState(false);
@@ -168,11 +180,39 @@ const AdminProducts = () => {
     }
   };
 
-  const filteredProducts = products.filter(
-    (p) =>
+  // Derive unique categories for filter
+  const categories = Array.from(
+    new Set(products.map((p) => p.category).filter(Boolean))
+  ).sort() as string[];
+
+  const hasActiveFilters = filterCategory !== "all" || filterStatus !== "all" || filterStock !== "all";
+
+  const filteredProducts = products.filter((p) => {
+    const matchesSearch =
       p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.category?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+      p.sku?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.category?.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesCategory = filterCategory === "all" || p.category === filterCategory;
+    const matchesStatus =
+      filterStatus === "all" ||
+      (filterStatus === "active" && p.is_active) ||
+      (filterStatus === "draft" && !p.is_active);
+    const matchesStock =
+      filterStock === "all" ||
+      (filterStock === "in_stock" && (p.stock_quantity ?? 0) > 5) ||
+      (filterStock === "low_stock" && (p.stock_quantity ?? 0) > 0 && (p.stock_quantity ?? 0) <= 5) ||
+      (filterStock === "out_of_stock" && (p.stock_quantity ?? 0) === 0);
+
+    return matchesSearch && matchesCategory && matchesStatus && matchesStock;
+  });
+
+  const clearFilters = () => {
+    setFilterCategory("all");
+    setFilterStatus("all");
+    setFilterStock("all");
+    setSearchQuery("");
+  };
 
   if (loading) {
     return (
@@ -361,17 +401,63 @@ const AdminProducts = () => {
         </Dialog>
       </div>
 
-      {/* Search */}
+      {/* Search & Filters */}
       <Card className="border-0 shadow-lg">
-        <CardContent className="p-4">
+        <CardContent className="p-4 space-y-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search products..."
+              placeholder="Search by title, SKU, or category..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
             />
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Filter size={14} className="text-muted-foreground" />
+            <Select value={filterCategory} onValueChange={setFilterCategory}>
+              <SelectTrigger className="w-[160px] h-9 text-sm">
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {categories.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-[130px] h-9 text-sm">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="draft">Draft</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={filterStock} onValueChange={setFilterStock}>
+              <SelectTrigger className="w-[140px] h-9 text-sm">
+                <SelectValue placeholder="Stock" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Stock</SelectItem>
+                <SelectItem value="in_stock">In Stock</SelectItem>
+                <SelectItem value="low_stock">Low Stock (≤5)</SelectItem>
+                <SelectItem value="out_of_stock">Out of Stock</SelectItem>
+              </SelectContent>
+            </Select>
+            {hasActiveFilters && (
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1 h-9 text-xs text-muted-foreground">
+                <X size={12} />
+                Clear filters
+              </Button>
+            )}
+            <span className="text-xs text-muted-foreground ml-auto">
+              {filteredProducts.length} of {products.length} products
+            </span>
           </div>
         </CardContent>
       </Card>
