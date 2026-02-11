@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { AdminProduct } from './useAdminProducts';
+import { AdminProduct, ProductVariantData } from './useAdminProducts';
 
 export function useAdminProduct(id: string | undefined) {
   const [product, setProduct] = useState<AdminProduct | null>(null);
@@ -32,7 +32,6 @@ export function useAdminProduct(id: string | undefined) {
         setError('Product not found');
         setProduct(null);
       } else {
-        // Parse images from JSON if needed
         const parsedProduct: AdminProduct = {
           ...data,
           images: Array.isArray(data.images) 
@@ -40,6 +39,9 @@ export function useAdminProduct(id: string | undefined) {
             : typeof data.images === 'string' 
               ? JSON.parse(data.images) 
               : [],
+          variants: Array.isArray(data.variants)
+            ? (data.variants as unknown as ProductVariantData[])
+            : [],
         };
         setProduct(parsedProduct);
       }

@@ -1,6 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
+export interface ProductVariantData {
+  id: string;
+  size?: string;
+  color?: string;
+  price?: number | null;
+  stock?: number;
+  sku?: string;
+}
+
 export interface AdminProduct {
   id: string;
   title: string;
@@ -13,6 +22,7 @@ export interface AdminProduct {
   is_active: boolean | null;
   images: string[] | null;
   tags: string[] | null;
+  variants: ProductVariantData[];
   created_at: string;
   updated_at: string;
 }
@@ -41,14 +51,16 @@ export function useAdminProducts(limit?: number) {
     if (fetchError) {
       setError(fetchError.message);
     } else {
-      // Parse images from JSON if needed
-      const parsedProducts = (data || []).map(product => ({
+      const parsedProducts: AdminProduct[] = (data || []).map(product => ({
         ...product,
         images: Array.isArray(product.images) 
           ? product.images as string[]
           : typeof product.images === 'string' 
             ? JSON.parse(product.images) 
             : [],
+        variants: Array.isArray(product.variants)
+          ? (product.variants as unknown as ProductVariantData[])
+          : [],
       }));
       setProducts(parsedProducts);
     }
