@@ -32,7 +32,10 @@ import {
   ImagePlus,
   Filter,
   X,
+  ToggleLeft,
+  ToggleRight,
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -61,6 +64,8 @@ const AdminProducts = () => {
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [saving, setSaving] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkLoading, setBulkLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -181,6 +186,53 @@ const AdminProducts = () => {
     } else {
       toast.success("Product deleted");
     }
+  };
+
+  // Bulk selection helpers
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === paginatedProducts.length && paginatedProducts.every((p) => selectedIds.has(p.id))) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(paginatedProducts.map((p) => p.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!confirm(`Delete ${selectedIds.size} selected product(s)?`)) return;
+    setBulkLoading(true);
+    let failed = 0;
+    for (const id of selectedIds) {
+      const { error } = await deleteProduct(id);
+      if (error) failed++;
+    }
+    setBulkLoading(false);
+    const count = selectedIds.size;
+    setSelectedIds(new Set());
+    if (failed) toast.error(`${failed} product(s) failed to delete`);
+    else toast.success(`${count} product(s) deleted`);
+  };
+
+  const handleBulkToggleActive = async (active: boolean) => {
+    setBulkLoading(true);
+    let failed = 0;
+    const count = selectedIds.size;
+    for (const id of selectedIds) {
+      const { error } = await updateProduct(id, { is_active: active });
+      if (error) failed++;
+    }
+    setBulkLoading(false);
+    setSelectedIds(new Set());
+    if (failed) toast.error(`${failed} product(s) failed to update`);
+    else toast.success(`${count} product(s) set to ${active ? "active" : "draft"}`);
   };
 
   // Derive unique categories for filter
@@ -483,6 +535,56 @@ const AdminProducts = () => {
         </CardContent>
       </Card>
 
+      {/* Bulk Actions Bar */}
+      {selectedIds.size > 0 && (
+        <Card className="border-0 shadow-lg bg-primary/5">
+          <CardContent className="p-3 flex items-center gap-3">
+            <span className="text-sm font-medium text-foreground">
+              {selectedIds.size} selected
+            </span>
+            <div className="flex items-center gap-2 ml-auto">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                disabled={bulkLoading}
+                onClick={() => handleBulkToggleActive(true)}
+              >
+                <ToggleRight size={14} />
+                Set Active
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                disabled={bulkLoading}
+                onClick={() => handleBulkToggleActive(false)}
+              >
+                <ToggleLeft size={14} />
+                Set Draft
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="gap-1.5"
+                disabled={bulkLoading}
+                onClick={handleBulkDelete}
+              >
+                {bulkLoading ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                Delete
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedIds(new Set())}
+              >
+                <X size={14} />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Products Table */}
       <Card className="border-0 shadow-lg">
         <CardContent className="p-0">
@@ -500,6 +602,12 @@ const AdminProducts = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-[40px]">
+                    <Checkbox
+                      checked={paginatedProducts.length > 0 && paginatedProducts.every((p) => selectedIds.has(p.id))}
+                      onCheckedChange={toggleSelectAll}
+                    />
+                  </TableHead>
                   <TableHead>Product</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead>Price</TableHead>
@@ -517,6 +625,12 @@ const AdminProducts = () => {
                     transition={{ delay: index * 0.05 }}
                     className="group"
                   >
+                    <TableCell className="w-[40px]">
+                      <Checkbox
+                        checked={selectedIds.has(product.id)}
+                        onCheckedChange={() => toggleSelect(product.id)}
+                      />
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center overflow-hidden">
