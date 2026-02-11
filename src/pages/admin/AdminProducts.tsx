@@ -36,9 +36,10 @@ import { motion } from "framer-motion";
 import { MultiImageUpload } from "@/components/admin/ImageUpload";
 import { CategorySelect } from "@/components/admin/CategorySelect";
 import { ProductVariantsEditor, ProductVariant } from "@/components/admin/ProductVariantsEditor";
+import { BulkProductImport } from "@/components/admin/BulkProductImport";
 
 const AdminProducts = () => {
-  const { products, loading, createProduct, updateProduct, deleteProduct } =
+  const { products, loading, createProduct, updateProduct, deleteProduct, fetchData } =
     useAdminData();
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -199,12 +200,15 @@ const AdminProducts = () => {
             if (!open) resetForm();
           }}
         >
-          <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Plus size={18} />
-              Add Product
-            </Button>
-          </DialogTrigger>
+          <div className="flex gap-2">
+            <BulkProductImport onComplete={fetchData} />
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Plus size={18} />
+                Add Product
+              </Button>
+            </DialogTrigger>
+          </div>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="font-display text-xl">
