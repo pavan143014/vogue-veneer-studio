@@ -288,6 +288,7 @@ const Shop = () => {
                           category={product.category || "Uncategorized"}
                           isNew={new Date(product.created_at).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000}
                           isSale={!!product.compare_at_price && product.compare_at_price > product.price}
+                          variantStocks={product.variants?.map(v => ({ size: v.size, color: v.color, stock: v.stock }))}
                         />
                       </motion.div>
                     ))}
