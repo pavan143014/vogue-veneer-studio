@@ -51,12 +51,12 @@ export function CategorySelect({ value, onChange, placeholder = "Select category
   }
 
   return (
-    <Select value={value} onValueChange={onChange}>
+    <Select value={value || "__none__"} onValueChange={(val) => onChange(val === "__none__" ? "" : val)}>
       <SelectTrigger>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="">
+        <SelectItem value="__none__">
           <span className="text-muted-foreground">No category</span>
         </SelectItem>
         {flattenedCategories.length === 0 ? (
