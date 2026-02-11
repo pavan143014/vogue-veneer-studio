@@ -70,6 +70,7 @@ const Footer = () => {
 
   const brandName1 = f.brand_name_1 || defaultFooter.brand_name_1;
   const brandName2 = f.brand_name_2 || defaultFooter.brand_name_2;
+  const logoImageUrl = f.logo_image_url;
   const brandDesc = f.brand_description || defaultFooter.brand_description;
   const email = f.email || defaultFooter.email;
   const phone = f.phone || defaultFooter.phone;
@@ -111,9 +112,13 @@ const Footer = () => {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8 md:gap-12">
           {/* Brand Column */}
           <div className="col-span-2 md:col-span-2">
-            <h2 className="font-display text-3xl font-bold mb-4">
-              <span className="text-coral-light">{brandName1}</span> {brandName2}
-            </h2>
+            {logoImageUrl ? (
+              <img src={logoImageUrl} alt={`${brandName1} ${brandName2}`} className="h-10 w-auto object-contain mb-4" />
+            ) : (
+              <h2 className="font-display text-3xl font-bold mb-4">
+                <span className="text-coral-light">{brandName1}</span> {brandName2}
+              </h2>
+            )}
             <p className="font-body text-base opacity-80 mb-6 max-w-xs">{brandDesc}</p>
             
             <div className="space-y-3 mb-6">

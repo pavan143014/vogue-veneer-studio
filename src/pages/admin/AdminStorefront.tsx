@@ -321,13 +321,30 @@ const AdminStorefront = () => {
                 <CardDescription>Footer brand name, description, and contact info</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Logo Image (optional — overrides text logo)</Label>
+                  {footerContent.logo_image_url && (
+                    <div className="flex items-center gap-4 p-3 border border-border rounded-lg bg-muted/30">
+                      <img src={footerContent.logo_image_url} alt="Footer logo preview" className="h-10 w-auto object-contain" />
+                      <Button variant="ghost" size="sm" className="text-destructive" onClick={() => updateField("footer", "logo_image_url", "")}>
+                        <Trash2 className="h-4 w-4 mr-1" /> Remove
+                      </Button>
+                    </div>
+                  )}
+                  <ImageUpload
+                    value={footerContent.logo_image_url || ""}
+                    onChange={(url) => updateField("footer", "logo_image_url", url)}
+                    folder="logos"
+                    label="Footer Logo"
+                  />
+                </div>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label>Brand Name (Primary)</Label>
+                    <Label>Brand Name (Primary){footerContent.logo_image_url ? " — hidden when image is set" : ""}</Label>
                     <Input value={footerContent.brand_name_1 || ""} onChange={(e) => updateField("footer", "brand_name_1", e.target.value)} />
                   </div>
                   <div className="space-y-2">
-                    <Label>Brand Name (Secondary)</Label>
+                    <Label>Brand Name (Secondary){footerContent.logo_image_url ? " — hidden when image is set" : ""}</Label>
                     <Input value={footerContent.brand_name_2 || ""} onChange={(e) => updateField("footer", "brand_name_2", e.target.value)} />
                   </div>
                 </div>

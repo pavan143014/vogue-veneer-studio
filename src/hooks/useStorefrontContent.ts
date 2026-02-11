@@ -57,6 +57,7 @@ export interface HeaderContent {
 export interface FooterContent {
   brand_name_1: string;
   brand_name_2: string;
+  logo_image_url?: string;
   brand_description: string;
   email: string;
   phone: string;
