@@ -35,6 +35,7 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { MultiImageUpload } from "@/components/admin/ImageUpload";
 import { CategorySelect } from "@/components/admin/CategorySelect";
+import { ProductVariantsEditor, ProductVariant } from "@/components/admin/ProductVariantsEditor";
 
 const AdminProducts = () => {
   const { products, loading, createProduct, updateProduct, deleteProduct } =
@@ -54,6 +55,7 @@ const AdminProducts = () => {
     stock_quantity: "",
     is_active: true,
     images: [] as string[],
+    variants: [] as ProductVariant[],
   });
 
   const resetForm = () => {
@@ -67,12 +69,14 @@ const AdminProducts = () => {
       stock_quantity: "",
       is_active: true,
       images: [],
+      variants: [],
     });
     setEditingProduct(null);
   };
 
   const openEditDialog = (product: any) => {
     setEditingProduct(product);
+    const rawVariants = Array.isArray(product.variants) ? product.variants : [];
     setFormData({
       title: product.title,
       description: product.description || "",
@@ -83,6 +87,14 @@ const AdminProducts = () => {
       stock_quantity: product.stock_quantity?.toString() || "0",
       is_active: product.is_active,
       images: product.images || [],
+      variants: rawVariants.map((v: any) => ({
+        id: v.id || crypto.randomUUID(),
+        size: v.size || "",
+        color: v.color || "",
+        price: v.price?.toString() || "",
+        stock: v.stock?.toString() || "0",
+        sku: v.sku || "",
+      })),
     });
     setIsDialogOpen(true);
   };
@@ -92,6 +104,15 @@ const AdminProducts = () => {
     setSaving(true);
 
     try {
+      const serializedVariants = formData.variants.map((v) => ({
+        id: v.id,
+        size: v.size,
+        color: v.color,
+        price: v.price ? parseFloat(v.price) : null,
+        stock: parseInt(v.stock) || 0,
+        sku: v.sku,
+      }));
+
       const productData = {
         title: formData.title,
         description: formData.description,
@@ -104,6 +125,7 @@ const AdminProducts = () => {
         stock_quantity: parseInt(formData.stock_quantity) || 0,
         is_active: formData.is_active,
         images: formData.images,
+        variants: serializedVariants,
       };
 
       if (editingProduct) {
@@ -290,6 +312,13 @@ const AdminProducts = () => {
                 onChange={(images) => setFormData({ ...formData, images })}
                 folder="products"
                 maxImages={5}
+              />
+
+              {/* Variants */}
+              <ProductVariantsEditor
+                variants={formData.variants}
+                onChange={(variants) => setFormData({ ...formData, variants })}
+                basePrice={formData.price}
               />
 
               <div className="flex items-center gap-3">
