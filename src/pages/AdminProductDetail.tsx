@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Heart, ShoppingBag, Truck, Shield, RefreshCw, Loader2, Share2, Minus, Plus } from "lucide-react";
+import { ArrowLeft, Heart, ShoppingBag, Truck, Shield, RefreshCw, Loader2, Share2, Minus, Plus, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,6 +17,23 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
+// Color mapping for visual swatches
+const colorMap: Record<string, string> = {
+  "red": "bg-red-500", "burgundy red": "bg-red-800", "royal blue": "bg-blue-700",
+  "blue": "bg-blue-500", "navy": "bg-blue-900", "green": "bg-green-500",
+  "black": "bg-gray-900", "white": "bg-white border-2 border-gray-300",
+  "cream": "bg-amber-50 border border-gray-200", "beige": "bg-amber-100",
+  "gold": "bg-yellow-500", "golden": "bg-yellow-500", "silver": "bg-gray-300",
+  "pink": "bg-pink-400", "rose": "bg-rose-400", "purple": "bg-purple-500",
+  "maroon": "bg-red-900", "yellow": "bg-yellow-400", "orange": "bg-orange-500",
+  "brown": "bg-amber-700", "grey": "bg-gray-500", "gray": "bg-gray-500",
+  "teal": "bg-teal-500",
+};
+
+const getColorClass = (colorName: string): string => {
+  return colorMap[colorName.toLowerCase()] || "bg-gradient-to-br from-primary/50 to-accent/50";
+};
+
 const AdminProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { product, loading, error } = useAdminProduct(id);
@@ -25,10 +42,33 @@ const AdminProductDetail = () => {
   
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [isLiked, setIsLiked] = useState(false);
 
-  const defaultSizes = ["S", "M", "L", "XL"];
+  // Extract unique sizes and colors from variants
+  const { availableSizes, availableColors, hasVariants } = useMemo(() => {
+    const variants = product?.variants || [];
+    const sizes = [...new Set(variants.map(v => v.size).filter(Boolean))] as string[];
+    const colors = [...new Set(variants.map(v => v.color).filter(Boolean))] as string[];
+    return { availableSizes: sizes, availableColors: colors, hasVariants: variants.length > 0 };
+  }, [product?.variants]);
+
+  // Find matching variant for selected options
+  const selectedVariant = useMemo(() => {
+    if (!product?.variants?.length) return null;
+    return product.variants.find(v => {
+      const sizeMatch = !availableSizes.length || v.size === selectedSize;
+      const colorMatch = !availableColors.length || v.color === selectedColor;
+      return sizeMatch && colorMatch;
+    }) || null;
+  }, [product?.variants, selectedSize, selectedColor, availableSizes.length, availableColors.length]);
+
+  // Get effective price (variant price or base price)
+  const effectivePrice = selectedVariant?.price ?? product?.price ?? 0;
+  const effectiveStock = selectedVariant?.stock ?? product?.stock_quantity ?? 0;
+
+  const fallbackSizes = ["S", "M", "L", "XL"];
 
   if (loading) {
     return (
@@ -87,16 +127,16 @@ const AdminProductDetail = () => {
   const savings = hasDiscount ? product.compare_at_price! - product.price : 0;
 
   const handleAddToCart = () => {
-    if (!selectedSize) {
+    const sizesAvailable = availableSizes.length > 0 ? availableSizes : fallbackSizes;
+    if (!selectedSize && sizesAvailable.length > 0) {
       toast.error("Please select a size");
       return;
     }
 
-    // Create a Product object for the cart
     const cartProduct: Product = {
       id: product.id,
       name: product.title,
-      price: product.price,
+      price: effectivePrice,
       originalPrice: product.compare_at_price || undefined,
       image: images[0] || "/placeholder.svg",
       category: product.category || "Uncategorized",
@@ -104,21 +144,21 @@ const AdminProductDetail = () => {
       isSale: hasDiscount || false,
       description: product.description || "",
       details: [],
-      sizes: defaultSizes,
-      colors: [],
+      sizes: sizesAvailable,
+      colors: availableColors.map(c => ({ name: c, hex: "", image: "" })),
       fabric: "",
       careInstructions: []
     };
 
     addItem({
       product: cartProduct,
-      selectedSize,
+      selectedSize: selectedSize || "One Size",
+      selectedColor: selectedColor || undefined,
       quantity
     });
 
-    toast.success("Added to cart!", {
-      description: `${product.title} - Size ${selectedSize} × ${quantity}`,
-    });
+    const desc = [product.title, selectedSize && `Size ${selectedSize}`, selectedColor, `× ${quantity}`].filter(Boolean).join(" - ");
+    toast.success("Added to cart!", { description: desc });
   };
 
   const handleShare = () => {
@@ -263,7 +303,7 @@ const AdminProductDetail = () => {
               {/* Price */}
               <div className="flex items-center gap-3 mb-4">
                 <span className="font-display text-3xl font-semibold text-foreground">
-                  ₹{product.price.toLocaleString()}
+                  ₹{effectivePrice.toLocaleString()}
                 </span>
                 {hasDiscount && (
                   <>
@@ -279,8 +319,8 @@ const AdminProductDetail = () => {
 
               {/* Stock Indicator */}
               <StockIndicator 
-                availableForSale={(product.stock_quantity || 0) > 0}
-                quantityAvailable={product.stock_quantity}
+                availableForSale={effectiveStock > 0}
+                quantityAvailable={effectiveStock}
               />
             </div>
 
@@ -309,6 +349,38 @@ const AdminProductDetail = () => {
               </p>
             )}
 
+            {/* Color Selection */}
+            {availableColors.length > 0 && (
+              <div>
+                <label className="font-body text-sm font-medium text-foreground block mb-3">
+                  Color: <span className="text-muted-foreground">{selectedColor || "Select"}</span>
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {availableColors.map((color) => (
+                    <button
+                      key={color}
+                      onClick={() => setSelectedColor(color)}
+                      className={cn(
+                        "w-10 h-10 rounded-full transition-all duration-200 flex items-center justify-center",
+                        getColorClass(color),
+                        selectedColor === color
+                          ? "ring-2 ring-primary ring-offset-2 ring-offset-background scale-110"
+                          : "hover:scale-105 opacity-70 hover:opacity-100"
+                      )}
+                      title={color}
+                    >
+                      {selectedColor === color && (
+                        <Check size={16} className={cn(
+                          "text-white",
+                          ["white", "cream", "ivory", "beige"].includes(color.toLowerCase()) ? "text-gray-800" : ""
+                        )} />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Size Selection */}
             <div>
               <div className="flex items-center justify-between mb-3">
@@ -318,7 +390,7 @@ const AdminProductDetail = () => {
                 <SizeGuide />
               </div>
               <div className="flex flex-wrap gap-2">
-                {defaultSizes.map((size) => (
+                {(availableSizes.length > 0 ? availableSizes : fallbackSizes).map((size) => (
                   <button
                     key={size}
                     onClick={() => setSelectedSize(size)}
@@ -335,6 +407,13 @@ const AdminProductDetail = () => {
               </div>
             </div>
 
+            {/* Variant Price Info */}
+            {selectedVariant && selectedVariant.price && selectedVariant.price !== product.price && (
+              <p className="font-body text-sm text-primary">
+                Variant price: ₹{selectedVariant.price.toLocaleString()}
+              </p>
+            )}
+
             {/* Quantity */}
             <div>
               <label className="font-body text-sm font-medium text-foreground block mb-3">
@@ -349,7 +428,7 @@ const AdminProductDetail = () => {
                 </button>
                 <span className="font-body text-base w-8 text-center">{quantity}</span>
                 <button
-                  onClick={() => setQuantity(Math.min(product.stock_quantity || 10, quantity + 1))}
+                  onClick={() => setQuantity(Math.min(effectiveStock || 10, quantity + 1))}
                   className="p-3 hover:bg-background rounded-r-lg transition-colors"
                 >
                   <Plus size={16} />
@@ -363,11 +442,11 @@ const AdminProductDetail = () => {
                 size="lg"
                 className="flex-1 bg-primary hover:bg-primary/90 font-body text-sm h-14"
                 onClick={handleAddToCart}
-                disabled={(product.stock_quantity || 0) <= 0 || !selectedSize}
+                disabled={effectiveStock <= 0 || !selectedSize}
               >
                 <ShoppingBag size={18} className="mr-2" />
-                {(product.stock_quantity || 0) > 0 
-                  ? `Add to Cart — ₹${(product.price * quantity).toLocaleString()}`
+                {effectiveStock > 0 
+                  ? `Add to Cart — ₹${(effectivePrice * quantity).toLocaleString()}`
                   : "Out of Stock"
                 }
               </Button>
