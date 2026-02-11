@@ -30,6 +30,14 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import * as XLSX from "xlsx";
 
+interface ParsedVariant {
+  size: string;
+  color: string;
+  stock: string;
+  price: string;
+  sku: string;
+}
+
 interface ParsedProduct {
   title: string;
   description: string;
@@ -40,6 +48,7 @@ interface ParsedProduct {
   stock_quantity: number;
   is_active: boolean;
   images: string[];
+  variants: ParsedVariant[];
   _row: number;
   _errors: string[];
 }
@@ -71,6 +80,16 @@ const SAMPLE_DATA = [
     is_active: true,
     image_url: "https://example.com/silk-kurthi.jpg",
     image_url_2: "https://example.com/silk-kurthi-back.jpg",
+    variant_1_size: "S",
+    variant_1_color: "Red",
+    variant_1_stock: 10,
+    variant_1_price: 1299,
+    variant_1_sku: "SKU-SILK-001-S-RED",
+    variant_2_size: "M",
+    variant_2_color: "Red",
+    variant_2_stock: 15,
+    variant_2_price: 1299,
+    variant_2_sku: "SKU-SILK-001-M-RED",
   },
   {
     title: "Cotton Printed Dress",
@@ -83,6 +102,16 @@ const SAMPLE_DATA = [
     is_active: true,
     image_url: "https://example.com/cotton-dress.jpg",
     image_url_2: "",
+    variant_1_size: "Free Size",
+    variant_1_color: "Blue",
+    variant_1_stock: 40,
+    variant_1_price: 899,
+    variant_1_sku: "SKU-CTN-002-FS-BLU",
+    variant_2_size: "",
+    variant_2_color: "",
+    variant_2_stock: "",
+    variant_2_price: "",
+    variant_2_sku: "",
   },
   {
     title: "Chikankari Anarkali Set",
@@ -95,6 +124,16 @@ const SAMPLE_DATA = [
     is_active: true,
     image_url: "https://example.com/chikankari.jpg",
     image_url_2: "https://example.com/chikankari-detail.jpg",
+    variant_1_size: "M",
+    variant_1_color: "White",
+    variant_1_stock: 5,
+    variant_1_price: 2499,
+    variant_1_sku: "SKU-CHK-003-M-WHT",
+    variant_2_size: "L",
+    variant_2_color: "White",
+    variant_2_stock: 5,
+    variant_2_price: 2499,
+    variant_2_sku: "SKU-CHK-003-L-WHT",
   },
 ];
 
@@ -162,6 +201,22 @@ export function BulkProductImport({ onComplete }: BulkProductImportProps) {
             if (img) images.push(img);
           }
 
+          // Collect variants from variant_1_size, variant_1_color, etc. up to 5
+          const variants: ParsedVariant[] = [];
+          for (let n = 1; n <= 5; n++) {
+            const vSize = String(row[`variant_${n}_size`] || "").trim();
+            const vColor = String(row[`variant_${n}_color`] || "").trim();
+            if (vSize || vColor) {
+              variants.push({
+                size: vSize,
+                color: vColor,
+                stock: String(row[`variant_${n}_stock`] ?? "0").trim(),
+                price: String(row[`variant_${n}_price`] ?? "").trim(),
+                sku: String(row[`variant_${n}_sku`] || "").trim(),
+              });
+            }
+          }
+
           if (!title) errors.push("Title is required");
           if (isNaN(price) || price <= 0) errors.push("Invalid price");
           if (compare !== null && isNaN(compare)) errors.push("Invalid compare price");
@@ -179,6 +234,7 @@ export function BulkProductImport({ onComplete }: BulkProductImportProps) {
                 ? false
                 : true,
             images,
+            variants,
             _row: i + 2,
             _errors: errors,
           };
@@ -239,7 +295,14 @@ export function BulkProductImport({ onComplete }: BulkProductImportProps) {
         stock_quantity: p.stock_quantity,
         is_active: p.is_active,
         images: p.images,
-        variants: [],
+        variants: p.variants.map((v) => ({
+          id: crypto.randomUUID(),
+          size: v.size,
+          color: v.color,
+          stock: v.stock,
+          price: v.price,
+          sku: v.sku,
+        })),
       }));
 
       const { error } = await supabase.from("admin_products").insert(chunk);
@@ -415,6 +478,7 @@ export function BulkProductImport({ onComplete }: BulkProductImportProps) {
                               <TableHead>Images</TableHead>
                               <TableHead>Category</TableHead>
                               <TableHead>Stock</TableHead>
+                              <TableHead>Variants</TableHead>
                               <TableHead>Status</TableHead>
                             </TableRow>
                           </TableHeader>
@@ -466,6 +530,15 @@ export function BulkProductImport({ onComplete }: BulkProductImportProps) {
                                 </TableCell>
                                 <TableCell className="text-sm">
                                   {p.stock_quantity}
+                                </TableCell>
+                                <TableCell className="text-sm">
+                                  {p.variants.length > 0 ? (
+                                    <Badge variant="outline" className="text-xs">
+                                      {p.variants.length} variant{p.variants.length !== 1 ? "s" : ""}
+                                    </Badge>
+                                  ) : (
+                                    <span className="text-muted-foreground">—</span>
+                                  )}
                                 </TableCell>
                                 <TableCell>
                                   <Badge
