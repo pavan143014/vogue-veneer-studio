@@ -10,12 +10,21 @@ import UserMenu from "@/components/auth/UserMenu";
 import { DynamicNav } from "./DynamicNav";
 import { useNavigationMenu } from "@/hooks/useNavigationMenu";
 import { CategoryNav, MobileCategoryNav } from "./CategoryNav";
+import { useStorefrontContent, HeaderContent } from "@/hooks/useStorefrontContent";
 
-const promoMessages = [
-  { icon: Sparkles, text: "✨ Free Shipping on Orders Above ₹999 ✨" },
-  { icon: Gift, text: "🎁 Buy 2 Get 1 Free on Selected Items 🎁" },
-  { icon: Percent, text: "🔥 Use Code: ETHNIC30 for 30% Off 🔥" },
+const defaultPromoMessages = [
+  "✨ Free Shipping on Orders Above ₹999 ✨",
+  "🎁 Buy 2 Get 1 Free on Selected Items 🎁",
+  "🔥 Use Code: ETHNIC30 for 30% Off 🔥",
 ];
+
+const defaultSubLinks = [
+  { label: "New Arrivals", href: "/shop?collection=new", icon: "tag" },
+  { label: "Best Sellers", href: "/shop?collection=bestsellers", icon: "heart" },
+  { label: "Sale", href: "/shop?collection=sale", icon: "percent", highlight: true },
+];
+
+const iconMap: Record<string, any> = { tag: Tag, heart: Heart, percent: Percent, truck: Truck, gift: Gift, sparkles: Sparkles };
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -26,8 +35,14 @@ const Header = () => {
   const { totalItems, setCartOpen } = useLocalCartStore();
   const itemCount = totalItems();
   const navigate = useNavigate();
+  const { content } = useStorefrontContent();
+  const headerContent = content.header as HeaderContent | undefined;
+
+  const logoText1 = headerContent?.logo_text_1 || "Aroma";
+  const logoText2 = headerContent?.logo_text_2 || " Ethnic";
+  const promoMessages = headerContent?.promo_messages?.length ? headerContent.promo_messages : defaultPromoMessages;
+  const subLinks = headerContent?.sub_links?.length ? headerContent.sub_links : defaultSubLinks;
   
-  // Fetch dynamic navigation menu from database
   const { menu: headerMenu } = useNavigationMenu("header");
 
   useEffect(() => {
@@ -35,7 +50,7 @@ const Header = () => {
       setCurrentPromo((prev) => (prev + 1) % promoMessages.length);
     }, 4000);
     return () => clearInterval(interval);
-  }, []);
+  }, [promoMessages.length]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -44,8 +59,6 @@ const Header = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  const CurrentIcon = promoMessages[currentPromo].icon;
 
   return (
     <motion.header 
@@ -75,11 +88,11 @@ const Header = () => {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.4 }}
           >
-            <CurrentIcon className="w-4 h-4 animate-pulse" />
+            <Sparkles className="w-4 h-4 animate-pulse" />
             <span className="font-body text-xs md:text-sm font-semibold tracking-wide">
-              {promoMessages[currentPromo].text}
+              {promoMessages[currentPromo]}
             </span>
-            <CurrentIcon className="w-4 h-4 animate-pulse" />
+            <Sparkles className="w-4 h-4 animate-pulse" />
           </motion.div>
         </AnimatePresence>
       </div>
@@ -96,23 +109,11 @@ const Header = () => {
             >
               <AnimatePresence mode="wait">
                 {isMenuOpen ? (
-                  <motion.div
-                    key="close"
-                    initial={{ rotate: -90, opacity: 0 }}
-                    animate={{ rotate: 0, opacity: 1 }}
-                    exit={{ rotate: 90, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
+                  <motion.div key="close" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.2 }}>
                     <X size={24} />
                   </motion.div>
                 ) : (
-                  <motion.div
-                    key="menu"
-                    initial={{ rotate: 90, opacity: 0 }}
-                    animate={{ rotate: 0, opacity: 1 }}
-                    exit={{ rotate: -90, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
+                  <motion.div key="menu" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.2 }}>
                     <Menu size={24} />
                   </motion.div>
                 )}
@@ -121,165 +122,69 @@ const Header = () => {
           </motion.div>
 
           {/* Logo */}
-          <motion.div 
-            className="flex-1 md:flex-none text-center md:text-left"
-            whileHover={{ scale: 1.02 }}
-            transition={{ type: "spring", stiffness: 400 }}
-          >
+          <motion.div className="flex-1 md:flex-none text-center md:text-left" whileHover={{ scale: 1.02 }} transition={{ type: "spring", stiffness: 400 }}>
             <Link to="/" className="inline-block group relative">
-              <motion.div
-                className="absolute -inset-2 bg-gradient-to-r from-coral/20 via-gold/20 to-teal/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-              />
+              <motion.div className="absolute -inset-2 bg-gradient-to-r from-coral/20 via-gold/20 to-teal/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight relative">
-                <motion.span 
-                  className="text-primary inline-block"
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ type: "spring", stiffness: 400 }}
-                >
-                  Aroma
+                <motion.span className="text-primary inline-block" whileHover={{ scale: 1.05 }} transition={{ type: "spring", stiffness: 400 }}>
+                  {logoText1}
                 </motion.span>
-                <span className="text-secondary"> Ethnic</span>
+                <span className="text-secondary">{logoText2}</span>
               </h1>
             </Link>
           </motion.div>
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-1">
-            {/* Shop All Link */}
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-            >
-              <Link
-                to="/shop"
-                className="flex items-center gap-1 px-4 py-2.5 font-body text-sm font-medium text-foreground hover:text-primary transition-all duration-300 rounded-xl hover:bg-gradient-to-r hover:from-primary/10 hover:to-gold/10"
-              >
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+              <Link to="/shop" className="flex items-center gap-1 px-4 py-2.5 font-body text-sm font-medium text-foreground hover:text-primary transition-all duration-300 rounded-xl hover:bg-gradient-to-r hover:from-primary/10 hover:to-gold/10">
                 Shop All
               </Link>
             </motion.div>
-
-            {/* Categories Dropdown */}
             <CategoryNav />
-
-            {/* Track Order Link */}
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.05 }}
-            >
-              <Link
-                to="/track-order"
-                className="flex items-center gap-1.5 px-4 py-2.5 font-body text-sm font-medium text-foreground hover:text-primary transition-all duration-300 rounded-xl hover:bg-gradient-to-r hover:from-primary/10 hover:to-gold/10"
-              >
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.05 }}>
+              <Link to="/track-order" className="flex items-center gap-1.5 px-4 py-2.5 font-body text-sm font-medium text-foreground hover:text-primary transition-all duration-300 rounded-xl hover:bg-gradient-to-r hover:from-primary/10 hover:to-gold/10">
                 <Package size={16} />
                 Track Order
               </Link>
             </motion.div>
-
-            {/* About Us Link */}
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-            >
-              <Link
-                to="/about"
-                className="flex items-center gap-1.5 px-4 py-2.5 font-body text-sm font-medium text-foreground hover:text-primary transition-all duration-300 rounded-xl hover:bg-gradient-to-r hover:from-primary/10 hover:to-gold/10"
-              >
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
+              <Link to="/about" className="flex items-center gap-1.5 px-4 py-2.5 font-body text-sm font-medium text-foreground hover:text-primary transition-all duration-300 rounded-xl hover:bg-gradient-to-r hover:from-primary/10 hover:to-gold/10">
                 About Us
               </Link>
             </motion.div>
-
-            {/* Contact Link */}
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.15 }}
-            >
-              <Link
-                to="/contact"
-                className="flex items-center gap-1.5 px-4 py-2.5 font-body text-sm font-medium text-foreground hover:text-primary transition-all duration-300 rounded-xl hover:bg-gradient-to-r hover:from-primary/10 hover:to-gold/10"
-              >
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.15 }}>
+              <Link to="/contact" className="flex items-center gap-1.5 px-4 py-2.5 font-body text-sm font-medium text-foreground hover:text-primary transition-all duration-300 rounded-xl hover:bg-gradient-to-r hover:from-primary/10 hover:to-gold/10">
                 Contact
               </Link>
             </motion.div>
-            
-            {/* Dynamic Menu Items from Database */}
             {headerMenu && headerMenu.items.length > 0 && (
               <DynamicNav items={headerMenu.items} startIndex={4} />
             )}
-            
           </nav>
 
           {/* Icons */}
           <div className="flex items-center gap-1 md:gap-2">
-            {/* Search Button */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.3 }}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              className="hidden md:block"
-            >
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="hover:bg-gradient-to-br hover:from-primary/10 hover:to-gold/10 hover:text-primary transition-all duration-300 rounded-xl"
-                onClick={() => setIsSearchOpen(!isSearchOpen)}
-              >
+            <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} className="hidden md:block">
+              <Button variant="ghost" size="icon" className="hover:bg-gradient-to-br hover:from-primary/10 hover:to-gold/10 hover:text-primary transition-all duration-300 rounded-xl" onClick={() => setIsSearchOpen(!isSearchOpen)}>
                 <Search size={20} />
               </Button>
             </motion.div>
-            
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.4 }}
-              className="hidden md:block"
-            >
+            <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.4 }} className="hidden md:block">
               <UserMenu />
             </motion.div>
-            
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.5 }}
-            >
+            <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.5 }}>
               <ThemeToggle />
             </motion.div>
-            
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.5 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
+            <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.5 }} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <WishlistDrawer />
             </motion.div>
-            
-            <motion.div
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="relative hover:bg-gradient-to-br hover:from-primary/10 hover:to-gold/10 hover:text-primary transition-all duration-300 rounded-xl"
-                onClick={() => setCartOpen(true)}
-              >
+            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+              <Button variant="ghost" size="icon" className="relative hover:bg-gradient-to-br hover:from-primary/10 hover:to-gold/10 hover:text-primary transition-all duration-300 rounded-xl" onClick={() => setCartOpen(true)}>
                 <ShoppingBag size={20} />
                 <AnimatePresence>
                   {itemCount > 0 && (
-                    <motion.span 
-                      className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-coral to-coral-dark text-primary-foreground text-xs font-bold rounded-full flex items-center justify-center shadow-lg"
-                      initial={{ scale: 0, rotate: -180 }}
-                      animate={{ scale: 1, rotate: 0 }}
-                      exit={{ scale: 0, rotate: 180 }}
-                      transition={{ type: "spring", stiffness: 500, damping: 25 }}
-                    >
+                    <motion.span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-coral to-coral-dark text-primary-foreground text-xs font-bold rounded-full flex items-center justify-center shadow-lg" initial={{ scale: 0, rotate: -180 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0, rotate: 180 }} transition={{ type: "spring", stiffness: 500, damping: 25 }}>
                       {itemCount}
                     </motion.span>
                   )}
@@ -292,45 +197,15 @@ const Header = () => {
         {/* Search Bar Overlay */}
         <AnimatePresence>
           {isSearchOpen && (
-            <motion.div
-              className="absolute top-full left-0 right-0 bg-card/95 backdrop-blur-xl border-b border-border p-4"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.2 }}
-            >
+            <motion.div className="absolute top-full left-0 right-0 bg-card/95 backdrop-blur-xl border-b border-border p-4" initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.2 }}>
               <div className="container mx-auto">
-                <form 
-                  className="flex items-center gap-3"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    if (searchQuery.trim()) {
-                      navigate(`/shop?search=${encodeURIComponent(searchQuery)}`);
-                      setIsSearchOpen(false);
-                      setSearchQuery("");
-                    }
-                  }}
-                >
+                <form className="flex items-center gap-3" onSubmit={(e) => { e.preventDefault(); if (searchQuery.trim()) { navigate(`/shop?search=${encodeURIComponent(searchQuery)}`); setIsSearchOpen(false); setSearchQuery(""); } }}>
                   <div className="flex-1 relative">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <input
-                      type="text"
-                      placeholder="Search for kurthis, dresses, festive wear..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-border focus:border-primary bg-background font-body text-base outline-none transition-colors"
-                      autoFocus
-                    />
+                    <input type="text" placeholder="Search for kurthis, dresses, festive wear..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-border focus:border-primary bg-background font-body text-base outline-none transition-colors" autoFocus />
                   </div>
-                  <Button type="submit" className="bg-primary hover:bg-primary/90 px-6">
-                    Search
-                  </Button>
-                  <Button 
-                    type="button" 
-                    variant="ghost" 
-                    size="icon"
-                    onClick={() => setIsSearchOpen(false)}
-                  >
+                  <Button type="submit" className="bg-primary hover:bg-primary/90 px-6">Search</Button>
+                  <Button type="button" variant="ghost" size="icon" onClick={() => setIsSearchOpen(false)}>
                     <X className="w-5 h-5" />
                   </Button>
                 </form>
@@ -341,34 +216,26 @@ const Header = () => {
       </div>
 
       {/* Sticky Sub Header - Shopping Quick Links */}
-      <div 
-        className={`hidden md:block border-t border-border/30 bg-background/95 backdrop-blur-md transition-shadow duration-300 ${
-          isScrolled ? "shadow-sm" : ""
-        }`}
-      >
+      <div className={`hidden md:block border-t border-border/30 bg-background/95 backdrop-blur-md transition-shadow duration-300 ${isScrolled ? "shadow-sm" : ""}`}>
         <div className="container mx-auto px-4">
           <nav className="flex items-center justify-center gap-6">
-            <Link
-              to="/shop?collection=new"
-              className="flex items-center gap-2 px-3 py-2 font-body text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
-            >
-              <Tag size={14} />
-              New Arrivals
-            </Link>
-            <Link
-              to="/shop?collection=bestsellers"
-              className="flex items-center gap-2 px-3 py-2 font-body text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
-            >
-              <Heart size={14} />
-              Best Sellers
-            </Link>
-            <Link
-              to="/shop?collection=sale"
-              className="flex items-center gap-2 px-3 py-2 font-body text-xs font-medium text-coral hover:text-coral-dark transition-colors"
-            >
-              <Percent size={14} />
-              Sale
-            </Link>
+            {subLinks.map((link) => {
+              const IconComp = iconMap[link.icon] || Tag;
+              return (
+                <Link
+                  key={link.label}
+                  to={link.href}
+                  className={`flex items-center gap-2 px-3 py-2 font-body text-xs font-medium transition-colors ${
+                    link.highlight 
+                      ? "text-coral hover:text-coral-dark" 
+                      : "text-muted-foreground hover:text-primary"
+                  }`}
+                >
+                  <IconComp size={14} />
+                  {link.label}
+                </Link>
+              );
+            })}
           </nav>
         </div>
       </div>
@@ -376,128 +243,44 @@ const Header = () => {
       {/* Mobile Navigation */}
       <AnimatePresence>
         {isMenuOpen && (
-          <motion.div 
-            className="lg:hidden bg-card/95 backdrop-blur-xl border-t border-border max-h-[70vh] overflow-y-auto"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-          >
+          <motion.div className="lg:hidden bg-card/95 backdrop-blur-xl border-t border-border max-h-[70vh] overflow-y-auto" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.3 }}>
             <nav className="container mx-auto px-4 py-4">
-              {/* Page Links */}
-              <motion.div
-                className="border-b border-border/30"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1, duration: 0.3 }}
-              >
-                <Link
-                  to="/shop"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center justify-between w-full py-4 font-body text-base font-medium text-foreground"
-                >
+              <motion.div className="border-b border-border/30" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1, duration: 0.3 }}>
+                <Link to="/shop" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between w-full py-4 font-body text-base font-medium text-foreground">
                   <span className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-gradient-to-r from-coral to-gold" />
                     Shop All
                   </span>
                 </Link>
               </motion.div>
-              
-              {/* Category Navigation */}
               <MobileCategoryNav onClose={() => setIsMenuOpen(false)} />
-
-              <motion.div
-                className="border-b border-border/30"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2, duration: 0.3 }}
-              >
-                <Link
-                  to="/track-order"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center justify-between w-full py-4 font-body text-base font-medium text-foreground"
-                >
-                  <span className="flex items-center gap-2">
-                    <Package size={18} />
-                    Track Order
-                  </span>
+              <motion.div className="border-b border-border/30" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2, duration: 0.3 }}>
+                <Link to="/track-order" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between w-full py-4 font-body text-base font-medium text-foreground">
+                  <span className="flex items-center gap-2"><Package size={18} />Track Order</span>
                 </Link>
               </motion.div>
-              
-              <motion.div
-                className="border-b border-border/30"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3, duration: 0.3 }}
-              >
-                <Link
-                  to="/about"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center justify-between w-full py-4 font-body text-base font-medium text-foreground"
-                >
-                  <span className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-gradient-to-r from-coral to-gold" />
-                    About Us
-                  </span>
+              <motion.div className="border-b border-border/30" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3, duration: 0.3 }}>
+                <Link to="/about" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between w-full py-4 font-body text-base font-medium text-foreground">
+                  <span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-gradient-to-r from-coral to-gold" />About Us</span>
                 </Link>
               </motion.div>
-              
-              <motion.div
-                className="border-b border-border/30"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4, duration: 0.3 }}
-              >
-                <Link
-                  to="/contact"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center justify-between w-full py-4 font-body text-base font-medium text-foreground"
-                >
-                  <span className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-gradient-to-r from-coral to-gold" />
-                    Contact
-                  </span>
+              <motion.div className="border-b border-border/30" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4, duration: 0.3 }}>
+                <Link to="/contact" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between w-full py-4 font-body text-base font-medium text-foreground">
+                  <span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-gradient-to-r from-coral to-gold" />Contact</span>
                 </Link>
               </motion.div>
-              
-              <motion.div 
-                className="space-y-3 pt-6 mt-2"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-              >
-                <Link
-                  to="/shop"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="block w-full"
-                >
-                  <Button 
-                    className="w-full bg-primary hover:bg-primary/90 rounded-xl"
-                  >
-                    <ShoppingBag size={16} className="mr-2" />
-                    Shop All Products
+              <motion.div className="space-y-3 pt-6 mt-2" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+                <Link to="/shop" onClick={() => setIsMenuOpen(false)} className="block w-full">
+                  <Button className="w-full bg-primary hover:bg-primary/90 rounded-xl">
+                    <ShoppingBag size={16} className="mr-2" />Shop All Products
                   </Button>
                 </Link>
                 <div className="flex items-center gap-3">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="flex-1 border-primary text-primary hover:bg-primary hover:text-primary-foreground rounded-xl transition-all duration-300"
-                    onClick={() => {
-                      setIsMenuOpen(false);
-                      setIsSearchOpen(true);
-                    }}
-                  >
-                    <Search size={16} className="mr-2" />
-                    Search
+                  <Button variant="outline" size="sm" className="flex-1 border-primary text-primary hover:bg-primary hover:text-primary-foreground rounded-xl transition-all duration-300" onClick={() => { setIsMenuOpen(false); setIsSearchOpen(true); }}>
+                    <Search size={16} className="mr-2" />Search
                   </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="flex-1 border-secondary text-secondary hover:bg-secondary hover:text-secondary-foreground rounded-xl transition-all duration-300"
-                  >
-                    <User size={16} className="mr-2" />
-                    Account
+                  <Button variant="outline" size="sm" className="flex-1 border-secondary text-secondary hover:bg-secondary hover:text-secondary-foreground rounded-xl transition-all duration-300">
+                    <User size={16} className="mr-2" />Account
                   </Button>
                 </div>
               </motion.div>
