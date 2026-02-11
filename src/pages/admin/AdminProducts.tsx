@@ -91,38 +91,43 @@ const AdminProducts = () => {
     e.preventDefault();
     setSaving(true);
 
-    const productData = {
-      title: formData.title,
-      description: formData.description,
-      price: parseFloat(formData.price),
-      compare_at_price: formData.compare_at_price
-        ? parseFloat(formData.compare_at_price)
-        : null,
-      category: formData.category,
-      sku: formData.sku,
-      stock_quantity: parseInt(formData.stock_quantity) || 0,
-      is_active: formData.is_active,
-      images: formData.images,
-    };
+    try {
+      const productData = {
+        title: formData.title,
+        description: formData.description,
+        price: parseFloat(formData.price),
+        compare_at_price: formData.compare_at_price
+          ? parseFloat(formData.compare_at_price)
+          : null,
+        category: formData.category,
+        sku: formData.sku,
+        stock_quantity: parseInt(formData.stock_quantity) || 0,
+        is_active: formData.is_active,
+        images: formData.images,
+      };
 
-    if (editingProduct) {
-      const { error } = await updateProduct(editingProduct.id, productData);
-      if (error) {
-        toast.error("Failed to update product");
+      if (editingProduct) {
+        const { error } = await updateProduct(editingProduct.id, productData);
+        if (error) {
+          toast.error("Failed to update product");
+        } else {
+          toast.success("Product updated successfully");
+          setIsDialogOpen(false);
+          resetForm();
+        }
       } else {
-        toast.success("Product updated successfully");
-        setIsDialogOpen(false);
-        resetForm();
+        const { error } = await createProduct(productData);
+        if (error) {
+          toast.error("Failed to create product");
+        } else {
+          toast.success("Product created successfully");
+          setIsDialogOpen(false);
+          resetForm();
+        }
       }
-    } else {
-      const { error } = await createProduct(productData);
-      if (error) {
-        toast.error("Failed to create product");
-      } else {
-        toast.success("Product created successfully");
-        setIsDialogOpen(false);
-        resetForm();
-      }
+    } catch (error) {
+      console.error("Error saving product:", error);
+      toast.error("An unexpected error occurred. Please try again.");
     }
 
     setSaving(false);
