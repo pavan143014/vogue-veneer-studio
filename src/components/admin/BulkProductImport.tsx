@@ -39,6 +39,7 @@ interface ParsedProduct {
   sku: string;
   stock_quantity: number;
   is_active: boolean;
+  images: string[];
   _row: number;
   _errors: string[];
 }
@@ -68,6 +69,8 @@ const SAMPLE_DATA = [
     sku: "SKU-SILK-001",
     stock_quantity: 25,
     is_active: true,
+    image_url: "https://example.com/silk-kurthi.jpg",
+    image_url_2: "https://example.com/silk-kurthi-back.jpg",
   },
   {
     title: "Cotton Printed Dress",
@@ -78,6 +81,8 @@ const SAMPLE_DATA = [
     sku: "SKU-CTN-002",
     stock_quantity: 40,
     is_active: true,
+    image_url: "https://example.com/cotton-dress.jpg",
+    image_url_2: "",
   },
   {
     title: "Chikankari Anarkali Set",
@@ -88,6 +93,8 @@ const SAMPLE_DATA = [
     sku: "SKU-CHK-003",
     stock_quantity: 10,
     is_active: true,
+    image_url: "https://example.com/chikankari.jpg",
+    image_url_2: "https://example.com/chikankari-detail.jpg",
   },
 ];
 
@@ -110,6 +117,7 @@ export function BulkProductImport({ onComplete }: BulkProductImportProps) {
     ws["!cols"] = [
       { wch: 30 }, { wch: 50 }, { wch: 10 }, { wch: 15 },
       { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 10 },
+      { wch: 40 }, { wch: 40 },
     ];
 
     XLSX.utils.book_append_sheet(wb, ws, "Products");
@@ -145,6 +153,15 @@ export function BulkProductImport({ onComplete }: BulkProductImportProps) {
             : null;
           const stock = parseInt(row.stock_quantity) || 0;
 
+          // Collect image URLs from image_url, image_url_2, ..., image_url_5
+          const images: string[] = [];
+          const primaryImg = String(row.image_url || "").trim();
+          if (primaryImg) images.push(primaryImg);
+          for (let n = 2; n <= 5; n++) {
+            const img = String(row[`image_url_${n}`] || "").trim();
+            if (img) images.push(img);
+          }
+
           if (!title) errors.push("Title is required");
           if (isNaN(price) || price <= 0) errors.push("Invalid price");
           if (compare !== null && isNaN(compare)) errors.push("Invalid compare price");
@@ -161,6 +178,7 @@ export function BulkProductImport({ onComplete }: BulkProductImportProps) {
               row.is_active === false || row.is_active === "false" || row.is_active === 0
                 ? false
                 : true,
+            images,
             _row: i + 2,
             _errors: errors,
           };
@@ -220,7 +238,7 @@ export function BulkProductImport({ onComplete }: BulkProductImportProps) {
         sku: p.sku || null,
         stock_quantity: p.stock_quantity,
         is_active: p.is_active,
-        images: [],
+        images: p.images,
         variants: [],
       }));
 
@@ -333,7 +351,9 @@ export function BulkProductImport({ onComplete }: BulkProductImportProps) {
                     <p className="text-sm text-muted-foreground mb-3">
                       Upload a CSV or Excel file with your product data. Required columns:{" "}
                       <span className="font-medium text-foreground">title</span> and{" "}
-                      <span className="font-medium text-foreground">price</span>.
+                      <span className="font-medium text-foreground">price</span>. Optional:{" "}
+                      <span className="font-medium text-foreground">image_url</span> through{" "}
+                      <span className="font-medium text-foreground">image_url_5</span> for up to 5 images.
                     </p>
                     <input
                       ref={fileInputRef}
@@ -392,6 +412,7 @@ export function BulkProductImport({ onComplete }: BulkProductImportProps) {
                               <TableHead className="w-12">Row</TableHead>
                               <TableHead>Title</TableHead>
                               <TableHead>Price</TableHead>
+                              <TableHead>Images</TableHead>
                               <TableHead>Category</TableHead>
                               <TableHead>Stock</TableHead>
                               <TableHead>Status</TableHead>
@@ -430,6 +451,15 @@ export function BulkProductImport({ onComplete }: BulkProductImportProps) {
                                 </TableCell>
                                 <TableCell className="text-sm">
                                   ₹{p.price.toLocaleString()}
+                                </TableCell>
+                                <TableCell className="text-sm">
+                                  {p.images.length > 0 ? (
+                                    <Badge variant="outline" className="text-xs">
+                                      {p.images.length} image{p.images.length !== 1 ? "s" : ""}
+                                    </Badge>
+                                  ) : (
+                                    <span className="text-muted-foreground">—</span>
+                                  )}
                                 </TableCell>
                                 <TableCell className="text-sm">
                                   {p.category || "-"}
