@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { ImageUpload } from "@/components/admin/ImageUpload";
 
 const AdminSettings = () => {
   const { siteSettings, loading, updateSetting } = useAdminData();
@@ -163,6 +164,28 @@ const AdminSettings = () => {
                       }
                     />
                   </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Favicon (Site Icon)</Label>
+                  <p className="text-xs text-muted-foreground font-body">
+                    Upload a square image (recommended 32×32 or 64×64 px) to use as the browser tab icon
+                  </p>
+                  {formData.general?.favicon_url && (
+                    <div className="flex items-center gap-3 p-3 border border-border rounded-lg bg-muted/30">
+                      <img src={formData.general.favicon_url} alt="Favicon preview" className="h-8 w-8 object-contain" />
+                      <span className="text-sm text-muted-foreground font-body truncate flex-1">{formData.general.favicon_url.split('/').pop()}</span>
+                      <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleChange("general", "favicon_url", "")}>
+                        Remove
+                      </Button>
+                    </div>
+                  )}
+                  <ImageUpload
+                    value={formData.general?.favicon_url || ""}
+                    onChange={(url) => handleChange("general", "favicon_url", url)}
+                    folder="favicons"
+                    label="Favicon"
+                    aspectRatio="square"
+                  />
                 </div>
                 <div className="pt-4">
                   <Button
