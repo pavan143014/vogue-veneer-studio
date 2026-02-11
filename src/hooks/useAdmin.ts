@@ -55,30 +55,40 @@ export function useAdminData() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     
-    const [settingsRes, menusRes, productsRes, bannersRes, gatewaysRes] = await Promise.all([
-      supabase.from('site_settings').select('*'),
-      supabase.from('navigation_menus').select('*'),
-      supabase.from('admin_products').select('*').order('created_at', { ascending: false }),
-      supabase.from('banners').select('*').order('position'),
-      supabase.from('payment_gateways').select('*'),
-    ]);
+    try {
+      const [settingsRes, menusRes, productsRes, bannersRes, gatewaysRes] = await Promise.all([
+        supabase.from('site_settings').select('*'),
+        supabase.from('navigation_menus').select('*'),
+        supabase.from('admin_products').select('*').order('created_at', { ascending: false }),
+        supabase.from('banners').select('*').order('position'),
+        supabase.from('payment_gateways').select('*'),
+      ]);
 
-    // Fetch orders via edge function (bypasses RLS)
-    const { data: ordersData } = await supabase.functions.invoke('admin-orders');
+      // Fetch orders via edge function (bypasses RLS)
+      let ordersData = null;
+      try {
+        const res = await supabase.functions.invoke('admin-orders');
+        ordersData = res.data;
+      } catch (err) {
+        console.error('Failed to fetch orders:', err);
+      }
 
-    if (settingsRes.data) {
-      const settings: Record<string, any> = {};
-      settingsRes.data.forEach((s: any) => {
-        settings[s.key] = s.value;
-      });
-      setSiteSettings(settings);
+      if (settingsRes.data) {
+        const settings: Record<string, any> = {};
+        settingsRes.data.forEach((s: any) => {
+          settings[s.key] = s.value;
+        });
+        setSiteSettings(settings);
+      }
+      
+      if (menusRes.data) setMenus(menusRes.data);
+      if (productsRes.data) setProducts(productsRes.data);
+      if (ordersData?.orders) setOrders(ordersData.orders);
+      if (bannersRes.data) setBanners(bannersRes.data);
+      if (gatewaysRes.data) setPaymentGateways(gatewaysRes.data);
+    } catch (err) {
+      console.error('Failed to fetch admin data:', err);
     }
-    
-    if (menusRes.data) setMenus(menusRes.data);
-    if (productsRes.data) setProducts(productsRes.data);
-    if (ordersData?.orders) setOrders(ordersData.orders);
-    if (bannersRes.data) setBanners(bannersRes.data);
-    if (gatewaysRes.data) setPaymentGateways(gatewaysRes.data);
     
     setLoading(false);
   }, []);
