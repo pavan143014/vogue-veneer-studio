@@ -46,12 +46,38 @@ export interface PromoPrimaryContent {
   cta_secondary: string;
 }
 
+export interface HeaderContent {
+  logo_text_1: string;
+  logo_text_2: string;
+  promo_messages: string[];
+  sub_links: { label: string; href: string; icon: string; highlight?: boolean }[];
+}
+
+export interface FooterContent {
+  brand_name_1: string;
+  brand_name_2: string;
+  brand_description: string;
+  email: string;
+  phone: string;
+  address: string;
+  social_links: { platform: string; url: string }[];
+  shop_links: { name: string; href: string }[];
+  help_links: { name: string; href: string }[];
+  company_links: { name: string; href: string }[];
+  copyright_text: string;
+  bottom_links: { name: string; href: string }[];
+  newsletter_title: string;
+  newsletter_subtitle: string;
+}
+
 export interface StorefrontContent {
   hero?: HeroContent;
   brand_story?: BrandStoryContent;
   promo_flash?: PromoFlashContent;
   promo_secondary?: PromoSecondaryContent;
   promo_primary?: PromoPrimaryContent;
+  header?: HeaderContent;
+  footer?: FooterContent;
 }
 
 export function useStorefrontContent() {
