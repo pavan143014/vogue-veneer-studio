@@ -37,6 +37,7 @@ import { MultiImageUpload } from "@/components/admin/ImageUpload";
 import { CategorySelect } from "@/components/admin/CategorySelect";
 import { ProductVariantsEditor, ProductVariant } from "@/components/admin/ProductVariantsEditor";
 import { BulkProductImport } from "@/components/admin/BulkProductImport";
+import { BulkProductExport } from "@/components/admin/BulkProductExport";
 
 const AdminProducts = () => {
   const { products, loading, createProduct, updateProduct, deleteProduct, fetchData } =
@@ -200,7 +201,8 @@ const AdminProducts = () => {
             if (!open) resetForm();
           }}
         >
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            <BulkProductExport />
             <BulkProductImport onComplete={fetchData} />
             <DialogTrigger asChild>
               <Button className="gap-2">
