@@ -13,6 +13,12 @@ import { toast } from "sonner";
 import { Product } from "@/data/products";
 import { useLocalCartStore } from "@/stores/localCartStore";
 
+interface VariantStock {
+  size?: string;
+  color?: string;
+  stock?: number;
+}
+
 interface ProductCardProps {
   id?: string;
   name: string;
@@ -24,6 +30,7 @@ interface ProductCardProps {
   isSale?: boolean;
   sizes?: string[];
   colors?: { name: string; hex: string; image: string }[];
+  variantStocks?: VariantStock[];
 }
 
 const ProductCard = ({ 
@@ -36,7 +43,8 @@ const ProductCard = ({
   isNew = false, 
   isSale = false,
   sizes = ["S", "M", "L", "XL"],
-  colors = []
+  colors = [],
+  variantStocks = []
 }: ProductCardProps) => {
   const navigate = useNavigate();
   const [isLiked, setIsLiked] = useState(false);
@@ -200,6 +208,44 @@ const ProductCard = ({
               </>
             )}
           </div>
+
+          {/* Variant Stock Indicators */}
+          {variantStocks.length > 0 && (
+            <div className="mt-2 space-y-1.5">
+              {/* Size availability */}
+              {variantStocks.some(v => v.size) && (
+                <div className="flex flex-wrap gap-1">
+                  {variantStocks
+                    .filter(v => v.size)
+                    .map((v, i) => {
+                      const inStock = (v.stock ?? 0) > 0;
+                      const lowStock = inStock && (v.stock ?? 0) <= 5;
+                      return (
+                        <span
+                          key={`${v.size}-${v.color}-${i}`}
+                          className={`inline-flex items-center gap-1 text-[10px] font-body font-medium px-1.5 py-0.5 rounded border ${
+                            !inStock
+                              ? "border-destructive/30 text-destructive bg-destructive/5 line-through"
+                              : lowStock
+                              ? "border-amber-500/30 text-amber-600 bg-amber-500/5"
+                              : "border-border text-muted-foreground bg-muted/30"
+                          }`}
+                          title={
+                            !inStock
+                              ? `${v.size}${v.color ? ` / ${v.color}` : ""} - Out of stock`
+                              : `${v.size}${v.color ? ` / ${v.color}` : ""} - ${v.stock} left`
+                          }
+                        >
+                          {v.size}{v.color ? `/${v.color}` : ""}
+                          {lowStock && <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />}
+                          {!inStock && <span className="w-1.5 h-1.5 rounded-full bg-destructive" />}
+                        </span>
+                      );
+                    })}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
