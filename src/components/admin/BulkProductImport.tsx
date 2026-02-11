@@ -173,6 +173,7 @@ export function BulkProductImport({ onComplete }: BulkProductImportProps) {
     skipped: number;
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const downloadTemplate = (format: "csv" | "xlsx") => {
     const wb = XLSX.utils.book_new();
@@ -367,18 +368,40 @@ export function BulkProductImport({ onComplete }: BulkProductImportProps) {
     reader.readAsArrayBuffer(file);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const validateAndParse = (file: File) => {
     const ext = file.name.split(".").pop()?.toLowerCase();
     if (!["csv", "xlsx", "xls"].includes(ext || "")) {
       toast.error("Please upload a CSV or Excel file");
       return;
     }
-
     parseFile(file);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    validateAndParse(file);
     e.target.value = "";
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) validateAndParse(file);
   };
 
   const startImport = async () => {
@@ -582,23 +605,32 @@ export function BulkProductImport({ onComplete }: BulkProductImportProps) {
                       Leave <span className="font-medium text-foreground">id</span> empty to create new products,
                       or provide an existing ID/SKU to update.
                     </p>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept=".csv,.xlsx,.xls"
-                      onChange={handleFileChange}
-                      className="hidden"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
+                    <div
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
                       onClick={() => fileInputRef.current?.click()}
-                      className="gap-1.5"
+                      className={`relative cursor-pointer rounded-lg border-2 border-dashed p-6 text-center transition-colors ${
+                        isDragging
+                          ? "border-primary bg-primary/5"
+                          : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50"
+                      }`}
                     >
-                      <FileSpreadsheet size={14} />
-                      Choose File
-                    </Button>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".csv,.xlsx,.xls"
+                        onChange={handleFileChange}
+                        className="hidden"
+                      />
+                      <Upload size={28} className={`mx-auto mb-2 ${isDragging ? "text-primary" : "text-muted-foreground"}`} />
+                      <p className="text-sm font-medium text-foreground">
+                        {isDragging ? "Drop your file here" : "Drag & drop your file here"}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        or click to browse — CSV, XLS, XLSX supported
+                      </p>
+                    </div>
                   </div>
                 </div>
               </CardContent>
